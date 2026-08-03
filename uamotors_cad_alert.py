@@ -5,7 +5,8 @@ import time
 import subprocess
 import requests
 import tkinter as tk
-import ctypes
+import socket
+import traceback
 from tkinter import messagebox
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -133,18 +134,16 @@ def auto_instalar():
             sys.exit()
 
 
-_instance_mutex = None
+_instance_socket = None
 
 
 def check_single_instance():
-    global _instance_mutex
-    if os.name == "nt":
-        kernel32 = ctypes.WinDLL("kernel32")
-        _instance_mutex = kernel32.CreateMutexW(
-            None, False, "Global\\UAMotorsCADAlertMutex"
-        )
-        if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
-            sys.exit()
+    global _instance_socket
+    try:
+        _instance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        _instance_socket.bind(('127.0.0.1', 47255))
+    except socket.error:
+        sys.exit()
 
 
 def find_existing_locks(root_path):
@@ -178,31 +177,36 @@ class SWMonitorHandler(FileSystemEventHandler):
 
 
 if __name__ == "__main__":
-    check_single_instance()
-    auto_instalar()
+    try:
+        check_single_instance()
+        auto_instalar()
 
-    ruta_activa = buscar_carpeta_uamotors()
-    if ruta_activa:
-        send_discord(f"⚙️ Monitoreo de CAD activo para: `{NOMBRE_ENSAMBLE}`")
-        initial_locks = find_existing_locks(ruta_activa)
-        event_handler = SWMonitorHandler(initial_locks)
-        observer = Observer()
-        observer.schedule(event_handler, path=ruta_activa, recursive=True)
-        observer.start()
+        ruta_activa = buscar_carpeta_uamotors()
+        if ruta_activa:
+            send_discord(f"⚙️ Monitoreo de CAD activo para: `{NOMBRE_ENSAMBLE}`")
+            initial_locks = find_existing_locks(ruta_activa)
+            event_handler = SWMonitorHandler(initial_locks)
+            observer = Observer()
+            observer.schedule(event_handler, path=ruta_activa, recursive=True)
+            observer.start()
 
-        try:
-            while True:
-                time.sleep(5)
-                # para cuando sw crashee o se se cierre desde el task manager
-                if not sldworks_esta_abierto():
-                    for lock_path in list(event_handler.active_lock_paths):
-                        if os.path.exists(lock_path):
-                            try:
-                                os.remove(lock_path)
-                            except Exception:
-                                pass
-        except KeyboardInterrupt:
-            observer.stop()
-        observer.join()
-    else:
-        send_discord(f"⚠️ No se encontró la carpeta UAMOTORS para monitorear.")
+            try:
+                while True:
+                    time.sleep(5)
+                    # para cuando sw crashee o se se cierre desde el task manager
+                    if not sldworks_esta_abierto():
+                        for lock_path in list(event_handler.active_lock_paths):
+                            if os.path.exists(lock_path):
+                                try:
+                                    os.remove(lock_path)
+                                except Exception:
+                                    pass
+            except KeyboardInterrupt:
+                observer.stop()
+            observer.join()
+        else:
+            send_discord(f"⚠️ No se encontró la carpeta UAMOTORS para monitorear.")
+    except Exception as e:
+        error_path = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")), "UAMotorsCAD_error.txt")
+        with open(error_path, "w") as f:
+            f.write(traceback.format_exc())
