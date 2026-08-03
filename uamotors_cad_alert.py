@@ -5,6 +5,7 @@ import time
 import subprocess
 import requests
 import tkinter as tk
+import ctypes
 from tkinter import messagebox
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -13,6 +14,7 @@ WEBHOOK_URL = "https://discord.com/api/webhooks/1533631167461331026/Aj_RamYRz4-n
 NOMBRE_ENSAMBLE = "GENERAL ASSEMBLY E.SLDASM"
 LOCK_FILE_NAME = f"~${NOMBRE_ENSAMBLE}"
 
+
 def buscar_carpeta_uamotors():
     user_home = os.path.expanduser("~")
     for nombre in ["Google Drive", "Drive", "GoogleDrive"]:
@@ -20,7 +22,7 @@ def buscar_carpeta_uamotors():
         if os.path.exists(ruta):
             return ruta
 
-    letras = [f"{chr(i)}:\\" for i in range(ord('D'), ord('Z') + 1)]
+    letras = [f"{chr(i)}:\\" for i in range(ord("D"), ord("Z") + 1)]
     for disco in letras:
         if os.path.exists(disco):
             try:
@@ -34,12 +36,16 @@ def buscar_carpeta_uamotors():
                 continue
     return None
 
+
 def sldworks_esta_abierto():
     try:
-        output = subprocess.check_output('tasklist /FI "IMAGENAME eq SLDWORKS.exe"', shell=True).decode(errors='ignore')
-        return "SLDWORKS.exe" in output
+        output = subprocess.check_output(
+            'tasklist /FI "IMAGENAME eq SLDWORKS.exe"', shell=True
+        ).decode(errors="ignore")
+        return "sldworks.exe" in output.lower()
     except Exception:
         return True
+
 
 def send_discord(message):
     try:
@@ -47,27 +53,35 @@ def send_discord(message):
     except Exception:
         pass
 
+
 def auto_instalar():
-    local_appdata = os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local"))
+    local_appdata = os.environ.get(
+        "LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")
+    )
     install_folder = os.path.join(local_appdata, "UAMotorsCAD")
-    startup_folder = os.path.expanduser(r"~\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup")
+    startup_folder = os.path.expanduser(
+        r"~\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+    )
     actual_path = sys.executable
     executable_name = os.path.basename(actual_path)
     target_path = os.path.join(install_folder, executable_name)
-    shortcut_path = os.path.join(startup_folder, os.path.splitext(executable_name)[0] + ".lnk")
+    shortcut_path = os.path.join(
+        startup_folder, os.path.splitext(executable_name)[0] + ".lnk"
+    )
     legacy_exe_path = os.path.join(startup_folder, executable_name)
 
     if os.path.dirname(actual_path).lower() != install_folder.lower():
-        # Intentar eliminar la versión antigua (legacy) si está en la carpeta de Inicio
         if os.path.exists(legacy_exe_path):
             try:
                 os.remove(legacy_exe_path)
             except PermissionError:
                 root = tk.Tk()
                 root.withdraw()
-                messagebox.showwarning("Aplicación en Ejecución", 
-                                       "La versión anterior se encuentra en ejecución en segundo plano.\n\n"
-                                       "Cierra la aplicación desde el Administrador de Tareas para actualizarla.")
+                messagebox.showwarning(
+                    "Aplicación en Ejecución",
+                    "La versión anterior se encuentra en ejecución en segundo plano.\n\n"
+                    "Cierra la aplicación desde el Administrador de Tareas para actualizarla.",
+                )
                 sys.exit()
             except Exception:
                 pass
@@ -78,70 +92,115 @@ def auto_instalar():
             except Exception as e:
                 root = tk.Tk()
                 root.withdraw()
-                messagebox.showerror("Error", f"No se pudo crear la carpeta de instalación.\n{e}")
+                messagebox.showerror(
+                    "Error", f"No se pudo crear la carpeta de instalación.\n{e}"
+                )
                 sys.exit()
 
         try:
             shutil.copy2(actual_path, target_path)
-            
-            # Crear acceso directo en Startup usando PowerShell
+
+            # acceso directo en startup
             ps_cmd = f"$s=(New-Object -COM WScript.Shell).CreateShortcut('{shortcut_path}');$s.TargetPath='{target_path}';$s.Save()"
             kwargs = {}
-            if os.name == 'nt':
-                kwargs['creationflags'] = 0x08000000
+            if os.name == "nt":
+                kwargs["creationflags"] = 0x08000000
             subprocess.call(["powershell", "-Command", ps_cmd], **kwargs)
 
             root = tk.Tk()
             root.withdraw()
-            messagebox.showinfo("UAMOTORS CAD", "¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas.")
+            messagebox.showinfo(
+                "UAMOTORS CAD",
+                "¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas.",
+            )
             os.startfile(target_path)
             sys.exit()
         except PermissionError:
             root = tk.Tk()
             root.withdraw()
-            messagebox.showwarning("Aplicación en Ejecución", 
-                                   "La aplicación ya se encuentra en ejecución en segundo plano.\n\n"
-                                   "Cierra la versión actual desde el Administrador de Tareas para poder actualizarla.")
+            messagebox.showwarning(
+                "Aplicación en Ejecución",
+                "La aplicación ya se encuentra en ejecución en segundo plano.\n\n"
+                "Cierra la versión actual desde el Administrador de Tareas para poder actualizarla.",
+            )
             sys.exit()
         except Exception as e:
             root = tk.Tk()
             root.withdraw()
-            messagebox.showerror("Error de Instalación", f"Ocurrió un error inesperado al instalar:\n{e}")
+            messagebox.showerror(
+                "Error de Instalación", f"Ocurrió un error inesperado al instalar:\n{e}"
+            )
             sys.exit()
 
+
+_instance_mutex = None
+
+
+def check_single_instance():
+    global _instance_mutex
+    if os.name == "nt":
+        kernel32 = ctypes.WinDLL("kernel32")
+        _instance_mutex = kernel32.CreateMutexW(
+            None, False, "Global\\UAMotorsCADAlertMutex"
+        )
+        if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+            sys.exit()
+
+
+def find_existing_locks(root_path):
+    locks = set()
+    for root_dir, _, files in os.walk(root_path):
+        for file in files:
+            if file.lower() == LOCK_FILE_NAME.lower():
+                locks.add(os.path.join(root_dir, file))
+    return locks
+
+
 class SWMonitorHandler(FileSystemEventHandler):
+    def __init__(self, initial_locks):
+        super().__init__()
+        self.active_lock_paths = initial_locks
+
     def on_created(self, event):
         filename = os.path.basename(event.src_path)
         if filename.lower() == LOCK_FILE_NAME.lower():
+            self.active_lock_paths.add(event.src_path)
             send_discord(f"🔴 **Ensamble en uso** (`{NOMBRE_ENSAMBLE}`) **[OCUPADO]**")
 
     def on_deleted(self, event):
         filename = os.path.basename(event.src_path)
         if filename.lower() == LOCK_FILE_NAME.lower():
-            send_discord(f"🟢 **Ensamble disponible** (`{NOMBRE_ENSAMBLE}`) **[LIBRE]**")
+            if event.src_path in self.active_lock_paths:
+                self.active_lock_paths.remove(event.src_path)
+            send_discord(
+                f"🟢 **Ensamble disponible** (`{NOMBRE_ENSAMBLE}`) **[LIBRE]**"
+            )
+
 
 if __name__ == "__main__":
+    check_single_instance()
     auto_instalar()
-    
+
     ruta_activa = buscar_carpeta_uamotors()
     if ruta_activa:
         send_discord(f"⚙️ Monitoreo de CAD activo para: `{NOMBRE_ENSAMBLE}`")
-        event_handler = SWMonitorHandler()
+        initial_locks = find_existing_locks(ruta_activa)
+        event_handler = SWMonitorHandler(initial_locks)
         observer = Observer()
         observer.schedule(event_handler, path=ruta_activa, recursive=True)
         observer.start()
-        
-        lock_path_completo = os.path.join(ruta_activa, LOCK_FILE_NAME)
-        
+
         try:
             while True:
                 time.sleep(5)
-                # Si existe el candado pero SolidWorks ya no está en ejecución, se elimina el candado huérfano
-                if os.path.exists(lock_path_completo) and not sldworks_esta_abierto():
-                    try:
-                        os.remove(lock_path_completo)
-                    except Exception:
-                        pass
+                # para cuando sw crashee o se se cierre desde el task manager
+                if not sldworks_esta_abierto():
+                    for lock_path in list(event_handler.active_lock_paths):
+                        if os.path.exists(lock_path):
+                            try:
+                                os.remove(lock_path)
+                            except Exception:
+                                pass
         except KeyboardInterrupt:
             observer.stop()
         observer.join()
