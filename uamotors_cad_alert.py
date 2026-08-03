@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import time
+import subprocess
 import requests
 import tkinter as tk
 from tkinter import messagebox
@@ -32,6 +33,13 @@ def buscar_carpeta_uamotors():
             except Exception:
                 continue
     return None
+
+def sldworks_esta_abierto():
+    try:
+        output = subprocess.check_output('tasklist /FI "IMAGENAME eq SLDWORKS.exe"', shell=True).decode(errors='ignore')
+        return "SLDWORKS.exe" in output
+    except Exception:
+        return True
 
 def send_discord(message):
     try:
@@ -76,9 +84,18 @@ if __name__ == "__main__":
         observer = Observer()
         observer.schedule(event_handler, path=ruta_activa, recursive=True)
         observer.start()
+        
+        lock_path_completo = os.path.join(ruta_activa, LOCK_FILE_NAME)
+        
         try:
             while True:
                 time.sleep(5)
+                # Si existe el candado pero SolidWorks ya no está en ejecución, se elimina el candado huérfano
+                if os.path.exists(lock_path_completo) and not sldworks_esta_abierto():
+                    try:
+                        os.remove(lock_path_completo)
+                    except Exception:
+                        pass
         except KeyboardInterrupt:
             observer.stop()
         observer.join()
