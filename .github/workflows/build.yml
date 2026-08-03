@@ -23,13 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install watchdog requests pyinstaller
 
-      - name: Compilar ejecutable de Windows
+      - name: Compilar ejecutable
         run: |
           pyinstaller --noconsole --onefile uamotors_cad_alert.py
-          ren dist\uamotors_cad_alert.exe UAMOTORS_CAD_Alert.ex_
+          copy INSTALAR.bat dist\INSTALAR.bat
 
-      - name: Subir artefacto sin bloqueo
+      - name: Subir artefacto (.zip con instalador)
         uses: actions/upload-artifact@v4
         with:
-          name: UAMOTORS_CAD_Alert_Windows
-          path: dist/UAMOTORS_CAD_Alert.ex_
+          name: UAMOTORS_CAD_Instalador
+          path: |
+            dist/uamotors_cad_alert.exe
+            dist/INSTALAR.bat
