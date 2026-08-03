@@ -7,12 +7,12 @@ from discord_utils import send_discord
 
 
 def _verificar_ensamble(ruta):
-    # Buscar el SLDASM dentro de la carpeta para confirmar que es la correcta
     for root, _, files in os.walk(ruta):
         for f in files:
             if f.lower() == config.NOMBRE_ENSAMBLE.lower():
                 return True
     return False
+
 
 def buscar_carpeta_uamotors():
     user_home = os.path.expanduser("~")

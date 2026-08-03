@@ -10,6 +10,7 @@ import config
 
 _instance_socket = None
 
+
 def check_single_instance():
     global _instance_socket
     try:
@@ -17,6 +18,7 @@ def check_single_instance():
         _instance_socket.bind(("127.0.0.1", config.SOCKET_PORT))
     except socket.error:
         sys.exit()
+
 
 def auto_instalar():
     local_appdata = os.environ.get(
@@ -77,7 +79,7 @@ def auto_instalar():
                 "UAMOTORS CAD",
                 "¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas.",
             )
-            # Cambiar el directorio de trabajo para liberar la carpeta de Descargas
+            # cambia el directorio de trabajo para liberar la carpeta con el empaquetado
             os.chdir(install_folder)
             os.startfile(target_path)
             sys.exit()

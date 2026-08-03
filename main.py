@@ -15,7 +15,9 @@ if __name__ == "__main__":
 
         ruta_activa = buscar_carpeta_uamotors()
         if ruta_activa:
-            send_discord(f"⚙️ Monitoreo de CAD activo para: `{config.NOMBRE_ENSAMBLE}`")
+            send_discord(
+                f"⚙️ Monitoreo de CAD activo desde un nuevo equipo para: `{config.NOMBRE_ENSAMBLE}`"
+            )
             event_handler = SWMonitorHandler()
             observer = Observer()
             observer.schedule(event_handler, path=ruta_activa, recursive=True)
@@ -24,7 +26,7 @@ if __name__ == "__main__":
             try:
                 while True:
                     time.sleep(5)
-                    # para cuando sw crashee o se cierre desde el task manager
+                    # crash de sw o cierre desde task manager
                     if not sldworks_esta_abierto():
                         for lock_path in list(event_handler.active_lock_paths):
                             if os.path.exists(lock_path):
