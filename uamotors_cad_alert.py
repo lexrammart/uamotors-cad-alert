@@ -11,7 +11,7 @@ from tkinter import messagebox
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1533631167461331026/Aj_RamYRz4-nv8I4DkS6lQjm7yjlyncQpJLlnaqWz7ys9qiKJZgIUZckhB1mgv4Z3tMk"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1533621148678488064/3xr254C785OW7FaW_OEv45EOp-x4rAvusyFo1Cs4uxo1WIyNkS9ayz0yZbFGaneBoQZF"
 NOMBRE_ENSAMBLE = "GENERAL ASSEMBLY E.SLDASM"
 LOCK_FILE_NAME = f"~${NOMBRE_ENSAMBLE}"
 
@@ -141,7 +141,7 @@ def check_single_instance():
     global _instance_socket
     try:
         _instance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _instance_socket.bind(('127.0.0.1', 47255))
+        _instance_socket.bind(("127.0.0.1", 47255))
     except socket.error:
         sys.exit()
 
@@ -207,6 +207,9 @@ if __name__ == "__main__":
         else:
             send_discord(f"⚠️ No se encontró la carpeta UAMOTORS para monitorear.")
     except Exception as e:
-        error_path = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")), "UAMotorsCAD_error.txt")
+        error_path = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")),
+            "UAMotorsCAD_error.txt",
+        )
         with open(error_path, "w") as f:
             f.write(traceback.format_exc())
