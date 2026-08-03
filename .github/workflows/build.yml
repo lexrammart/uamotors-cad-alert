@@ -1,0 +1,34 @@
+name: Compilar EXE para Windows
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install watchdog requests pyinstaller
+
+      - name: Compilar ejecutable de Windows
+        run: |
+          pyinstaller --noconsole --onefile uamotors_cad_alert.py
+
+      - name: Subir artefacto (.exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: UAMOTORS_CAD_Alert_Windows
+          path: dist/*.exe
