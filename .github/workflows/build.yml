@@ -2,7 +2,7 @@ name: Compilar EXE para Windows
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Instalar dependencias
         run: |
@@ -26,9 +26,10 @@ jobs:
       - name: Compilar ejecutable de Windows
         run: |
           pyinstaller --noconsole --onefile uamotors_cad_alert.py
+          ren dist\uamotors_cad_alert.exe UAMOTORS_CAD_Alert.ex_
 
-      - name: Subir artefacto (.exe)
+      - name: Subir artefacto sin bloqueo
         uses: actions/upload-artifact@v4
         with:
           name: UAMOTORS_CAD_Alert_Windows
-          path: dist/*.exe
+          path: dist/UAMOTORS_CAD_Alert.ex_
