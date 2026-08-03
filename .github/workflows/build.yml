@@ -26,7 +26,23 @@ jobs:
       - name: Compilar ejecutable
         run: |
           pyinstaller --noconsole --onefile uamotors_cad_alert.py
-          copy INSTALAR.bat dist\INSTALAR.bat
+
+      - name: Crear INSTALAR.bat automáticamente
+        shell: powershell
+        run: |
+          $batContent = @"
+          @echo off
+          echo Configurando alertas de CAD para UAMOTORS...
+          powershell -Command "Unblock-File -Path '%~dp0uamotors_cad_alert.exe'" 2>nul
+          copy /Y "%~dp0uamotors_cad_alert.exe" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\" >nul
+          start "" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\uamotors_cad_alert.exe"
+          echo.
+          echo ============================================
+          echo   LISTO! Instalacion completada con exito.
+          echo ============================================
+          timeout /t 3
+          "@
+          Set-Content -Path "dist\INSTALAR.bat" -Value $batContent
 
       - name: Subir artefacto (.zip con instalador)
         uses: actions/upload-artifact@v4
