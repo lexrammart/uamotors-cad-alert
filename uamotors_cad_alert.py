@@ -48,20 +48,66 @@ def send_discord(message):
         pass
 
 def auto_instalar():
+    local_appdata = os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local"))
+    install_folder = os.path.join(local_appdata, "UAMotorsCAD")
     startup_folder = os.path.expanduser(r"~\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup")
     actual_path = sys.executable
-    target_path = os.path.join(startup_folder, os.path.basename(actual_path))
+    executable_name = os.path.basename(actual_path)
+    target_path = os.path.join(install_folder, executable_name)
+    shortcut_path = os.path.join(startup_folder, os.path.splitext(executable_name)[0] + ".lnk")
+    legacy_exe_path = os.path.join(startup_folder, executable_name)
 
-    if os.path.dirname(actual_path).lower() != startup_folder.lower():
+    if os.path.dirname(actual_path).lower() != install_folder.lower():
+        # Intentar eliminar la versión antigua (legacy) si está en la carpeta de Inicio
+        if os.path.exists(legacy_exe_path):
+            try:
+                os.remove(legacy_exe_path)
+            except PermissionError:
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showwarning("Aplicación en Ejecución", 
+                                       "La versión anterior se encuentra en ejecución en segundo plano.\n\n"
+                                       "Cierra la aplicación desde el Administrador de Tareas para actualizarla.")
+                sys.exit()
+            except Exception:
+                pass
+
+        if not os.path.exists(install_folder):
+            try:
+                os.makedirs(install_folder)
+            except Exception as e:
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showerror("Error", f"No se pudo crear la carpeta de instalación.\n{e}")
+                sys.exit()
+
         try:
             shutil.copy2(actual_path, target_path)
+            
+            # Crear acceso directo en Startup usando PowerShell
+            ps_cmd = f"$s=(New-Object -COM WScript.Shell).CreateShortcut('{shortcut_path}');$s.TargetPath='{target_path}';$s.Save()"
+            kwargs = {}
+            if os.name == 'nt':
+                kwargs['creationflags'] = 0x08000000
+            subprocess.call(["powershell", "-Command", ps_cmd], **kwargs)
+
             root = tk.Tk()
             root.withdraw()
             messagebox.showinfo("UAMOTORS CAD", "¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas.")
             os.startfile(target_path)
             sys.exit()
-        except Exception:
-            pass
+        except PermissionError:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Aplicación en Ejecución", 
+                                   "La aplicación ya se encuentra en ejecución en segundo plano.\n\n"
+                                   "Cierra la versión actual desde el Administrador de Tareas para poder actualizarla.")
+            sys.exit()
+        except Exception as e:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("Error de Instalación", f"Ocurrió un error inesperado al instalar:\n{e}")
+            sys.exit()
 
 class SWMonitorHandler(FileSystemEventHandler):
     def on_created(self, event):
