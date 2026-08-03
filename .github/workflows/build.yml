@@ -32,15 +32,8 @@ jobs:
         run: |
           $batContent = @"
           @echo off
-          echo Configurando alertas de CAD para UAMOTORS...
           powershell -Command "Unblock-File -Path '%~dp0uamotors_cad_alert.exe'" 2>nul
           start "" "%~dp0uamotors_cad_alert.exe"
-          echo.
-          echo ============================================
-          echo   Instalador iniciado. Revisa la ventana
-          echo   emergente para confirmar la instalacion.
-          echo ============================================
-          timeout /t 3
           "@
           Set-Content -Path "dist\INSTALAR.bat" -Value $batContent
 

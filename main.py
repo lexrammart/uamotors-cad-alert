@@ -36,7 +36,7 @@ if __name__ == "__main__":
                 observer.stop()
             observer.join()
         else:
-            send_discord("⚠️ No se encontró la carpeta UAMOTORS para monitorear.")
+            pass
     except Exception as e:
         error_path = os.path.join(
             os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")),

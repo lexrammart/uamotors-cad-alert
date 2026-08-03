@@ -6,11 +6,19 @@ import config
 from discord_utils import send_discord
 
 
+def _verificar_ensamble(ruta):
+    # Buscar el SLDASM dentro de la carpeta para confirmar que es la correcta
+    for root, _, files in os.walk(ruta):
+        for f in files:
+            if f.lower() == config.NOMBRE_ENSAMBLE.lower():
+                return True
+    return False
+
 def buscar_carpeta_uamotors():
     user_home = os.path.expanduser("~")
     for nombre in ["Google Drive", "Drive", "GoogleDrive"]:
         ruta = os.path.join(user_home, nombre, "UAMOTORS")
-        if os.path.exists(ruta):
+        if os.path.exists(ruta) and _verificar_ensamble(ruta):
             return ruta
 
     letras = [f"{chr(i)}:\\" for i in range(ord("D"), ord("Z") + 1)]
@@ -20,7 +28,9 @@ def buscar_carpeta_uamotors():
                 for root, dirs, _ in os.walk(disco):
                     for d in dirs:
                         if d.upper() == "UAMOTORS":
-                            return os.path.join(root, d)
+                            ruta_candidata = os.path.join(root, d)
+                            if _verificar_ensamble(ruta_candidata):
+                                return ruta_candidata
                     if root.count(os.sep) - disco.count(os.sep) >= 2:
                         dirs.clear()
             except Exception:
@@ -48,7 +58,7 @@ class SWMonitorHandler(FileSystemEventHandler):
         if filename.lower() == config.LOCK_FILE_NAME.lower():
             self.active_lock_paths.add(event.src_path)
             send_discord(
-                f"🔴**[OCUPADO]**: Ensamble en uso (`{config.NOMBRE_ENSAMBLE}`)"
+                f"🔴 **[OCUPADO]:** Ensamble en uso (`{config.NOMBRE_ENSAMBLE}`)"
             )
 
     def on_deleted(self, event):
@@ -57,5 +67,5 @@ class SWMonitorHandler(FileSystemEventHandler):
             if event.src_path in self.active_lock_paths:
                 self.active_lock_paths.remove(event.src_path)
             send_discord(
-                f"🟢**[LIBRE]**: Ensamble disponible (`{config.NOMBRE_ENSAMBLE}`)"
+                f"🟢 **[LIBRE]:** Ensamble disponible (`{config.NOMBRE_ENSAMBLE}`)"
             )
