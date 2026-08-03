@@ -34,11 +34,11 @@ jobs:
           @echo off
           echo Configurando alertas de CAD para UAMOTORS...
           powershell -Command "Unblock-File -Path '%~dp0uamotors_cad_alert.exe'" 2>nul
-          copy /Y "%~dp0uamotors_cad_alert.exe" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\" >nul
-          start "" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\uamotors_cad_alert.exe"
+          start "" "%~dp0uamotors_cad_alert.exe"
           echo.
           echo ============================================
-          echo   LISTO! Instalacion completada con exito.
+          echo   Instalador iniciado. Revisa la ventana
+          echo   emergente para confirmar la instalacion.
           echo ============================================
           timeout /t 3
           "@
