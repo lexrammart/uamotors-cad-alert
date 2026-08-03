@@ -114,6 +114,8 @@ def auto_instalar():
                 "UAMOTORS CAD",
                 "¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas.",
             )
+            # Cambiar el directorio de trabajo para liberar la carpeta de Descargas
+            os.chdir(install_folder)
             os.startfile(target_path)
             sys.exit()
         except PermissionError:
@@ -146,19 +148,10 @@ def check_single_instance():
         sys.exit()
 
 
-def find_existing_locks(root_path):
-    locks = set()
-    for root_dir, _, files in os.walk(root_path):
-        for file in files:
-            if file.lower() == LOCK_FILE_NAME.lower():
-                locks.add(os.path.join(root_dir, file))
-    return locks
-
-
 class SWMonitorHandler(FileSystemEventHandler):
-    def __init__(self, initial_locks):
+    def __init__(self):
         super().__init__()
-        self.active_lock_paths = initial_locks
+        self.active_lock_paths = set()
 
     def on_created(self, event):
         filename = os.path.basename(event.src_path)
@@ -184,8 +177,7 @@ if __name__ == "__main__":
         ruta_activa = buscar_carpeta_uamotors()
         if ruta_activa:
             send_discord(f"⚙️ Monitoreo de CAD activo para: `{NOMBRE_ENSAMBLE}`")
-            initial_locks = find_existing_locks(ruta_activa)
-            event_handler = SWMonitorHandler(initial_locks)
+            event_handler = SWMonitorHandler()
             observer = Observer()
             observer.schedule(event_handler, path=ruta_activa, recursive=True)
             observer.start()
