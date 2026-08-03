@@ -25,7 +25,7 @@ jobs:
 
       - name: Compilar ejecutable
         run: |
-          pyinstaller --noconsole --onefile uamotors_cad_alert.py
+          pyinstaller -n uamotors_cad_alert --noconsole --onefile main.py
 
       - name: Crear INSTALAR.bat automáticamente
         shell: powershell
