@@ -44,3 +44,4 @@ jobs:
           path: |
             dist/uamotors_cad_alert.exe
             dist/INSTALAR.bat
+            INSTRUCCIONES_INSTALACION.txt
