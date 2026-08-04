@@ -16,7 +16,7 @@ if __name__ == "__main__":
         ruta_activa = buscar_carpeta_uamotors()
         if ruta_activa:
             send_discord(
-                f"⚙️ Monitoreo de CAD activo desde un nuevo equipo para: `{config.NOMBRE_ENSAMBLE}`"
+                f"⚙️ Monitoreo de CAD activo desde un nuevo equipo para: `{config.BASE_NAME}`"
             )
             event_handler = SWMonitorHandler()
             observer = Observer()
