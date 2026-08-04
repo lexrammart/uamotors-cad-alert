@@ -2,9 +2,10 @@
 General application configuration.
 Contains integration constants and regular expressions for monitoring.
 """
+
 import re
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1533621148678488064/3xr254C785OW7FaW_OEv45EOp-x4rAvusyFo1Cs4uxo1WIyNkS9ayz0yZbFGaneBoQZF"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1533988281195171962/nv3cJEvWrUhcEPDo1zH5zjcABusHsdbl65PCaYNPJwpXtLg6gPWTp1DcxH7OOVyEI5nM"
 
 # Target repository root directory to monitor
 TARGET_FOLDER = "UAMOTORS"
