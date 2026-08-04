@@ -1,3 +1,8 @@
+"""
+SolidWorks and file system status monitoring.
+Detects the creation and deletion of temporary lock files
+to infer the usage status of assemblies.
+"""
 import os
 import subprocess
 import re
@@ -7,6 +12,16 @@ from discord_utils import send_discord
 
 
 def _verificar_ensamble(ruta):
+    """
+    Recursively verifies if a directory contains any file
+    matching the expected assembly pattern.
+    
+    Args:
+        ruta (str): Root directory to inspect.
+        
+    Returns:
+        bool: True if a valid file is found, False otherwise.
+    """
     for root, _, files in os.walk(ruta):
         for f in files:
             if re.match(config.ASSEMBLY_PATTERN, f, re.IGNORECASE):
@@ -15,6 +30,13 @@ def _verificar_ensamble(ruta):
 
 
 def buscar_carpeta_uamotors():
+    """
+    Searches for the configured target path in local and cloud drives.
+    Validates the found folder using _verificar_ensamble().
+    
+    Returns:
+        str or None: The absolute path of the validated folder, or None if not found.
+    """
     user_home = os.path.expanduser("~")
     for nombre in ["Google Drive", "Drive", "GoogleDrive"]:
         ruta = os.path.join(user_home, nombre, config.TARGET_FOLDER)
@@ -39,6 +61,13 @@ def buscar_carpeta_uamotors():
 
 
 def sldworks_esta_abierto():
+    """
+    Verifies via command line if the SolidWorks process 
+    is currently active in the operating system's task list.
+    
+    Returns:
+        bool: True if the process is running or if an error occurs, False otherwise.
+    """
     try:
         output = subprocess.check_output(
             'tasklist /FI "IMAGENAME eq SLDWORKS.exe"', shell=True
@@ -49,6 +78,10 @@ def sldworks_esta_abierto():
 
 
 class SWMonitorHandler(FileSystemEventHandler):
+    """
+    File system event handler. 
+    Reacts to file creation and deletion to update the assembly status.
+    """
     def __init__(self):
         super().__init__()
         self.active_lock_paths = set()

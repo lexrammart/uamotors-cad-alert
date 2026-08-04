@@ -1,3 +1,7 @@
+"""
+Application installation and instance control management.
+Ensures the script runs uniquely and automates local user deployment.
+"""
 import os
 import sys
 import shutil
@@ -12,6 +16,10 @@ _instance_socket = None
 
 
 def check_single_instance():
+    """
+    Ensures only a single instance of the application runs at a time
+    by binding a local socket. Exits the application if the port is already in use.
+    """
     global _instance_socket
     try:
         _instance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,6 +29,11 @@ def check_single_instance():
 
 
 def auto_instalar():
+    """
+    Manages the automatic installation of the application in the user's AppData directory.
+    Checks for previous instances, creates necessary folders, copies the executable, and
+    creates a shortcut in the Startup folder.
+    """
     local_appdata = os.environ.get(
         "LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")
     )

@@ -1,3 +1,8 @@
+"""
+Main entry point for the UAMOTORS CAD alert monitor.
+Coordinates instance verification, automatic installation, and the startup
+of the file system event monitor.
+"""
 import os
 import time
 import traceback
