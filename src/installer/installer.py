@@ -2,6 +2,7 @@
 Application installation and instance control management.
 Ensures the script runs uniquely and automates local user deployment.
 """
+
 import os
 import sys
 import shutil
@@ -10,7 +11,7 @@ import tkinter as tk
 from tkinter import messagebox
 import socket
 
-import config
+import src.config as config
 
 _instance_socket = None
 

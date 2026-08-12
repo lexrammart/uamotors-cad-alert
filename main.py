@@ -3,15 +3,20 @@ Main entry point for the UAMOTORS CAD alert monitor.
 Coordinates instance verification, automatic installation, and the startup
 of the file system event monitor.
 """
+
 import os
 import time
 import traceback
 from watchdog.observers import Observer
 
-import config
-from discord_utils import send_discord
-from installer import check_single_instance, auto_instalar
-from monitor import buscar_carpeta_uamotors, sldworks_esta_abierto, SWMonitorHandler
+import src.config as config
+from src.services.discord_service import send_discord
+from src.installer.installer import check_single_instance, auto_instalar
+from src.core.monitor import (
+    buscar_carpeta_uamotors,
+    sldworks_esta_abierto,
+    SWMonitorHandler,
+)
 
 if __name__ == "__main__":
     try:
