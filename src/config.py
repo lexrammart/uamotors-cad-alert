@@ -4,6 +4,7 @@ Contains integration constants and regular expressions for monitoring.
 """
 
 import re
+import os
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/1533988281195171962/nv3cJEvWrUhcEPDo1zH5zjcABusHsdbl65PCaYNPJwpXtLg6gPWTp1DcxH7OOVyEI5nM"
 
@@ -20,3 +21,35 @@ LOCK_PATTERN = r"^~\$OP-01assembly\d+\.SLDASM$"
 # Local installation environment configuration
 INSTALL_FOLDER_NAME = "UAMotorsCAD"
 SOCKET_PORT = 47255
+
+## --DEVELOPER MODE--
+DEBUG = True
+DEV_WEBHOOK_URL = "https://discord.com/api/webhooks/1537230363766689914/Jij7QPz07-IfrmHdgDhEB762T2BsguRg0_73hr1QakDtPCcObrof--Gbk3rDt5_WVjBy"
+
+# test paths
+MAC_DRIVE_UAMOTORS_PATH = "/Users/alejandro/Library/CloudStorage/GoogleDrive-[CORREO_INSTITUCIONAL_REDACTADO]/Shared drives/UAMOTORS"
+MAC_TEST_SW_PATH = "/Users/alejandro/Library/CloudStorage/GoogleDrive-[CORREO_INSTITUCIONAL_REDACTADO]/Shared drives/UAMOTORS/2026/Design/Electronics/SW"
+DEV_TARGET_FOLDER = "./test_env/UAMOTORS"
+
+REL_DRIVE_DB_PATH = os.path.join(
+    "2026",
+    "Design",
+    "Electronics",
+    "Data-Code telemetry",
+    "auamotors_cad_alert",
+    "authorized_users.uamotors",
+)
+
+
+def get_appdata_dir():
+    """Returns local storage path"""
+
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local"))
+    else:
+        base = os.path.expanduser("~/.config")
+
+    path = os.path.join(base, INSTALL_FOLDER_NAME)
+    os.makedirs(path, exist_ok=True)
+
+    return path
