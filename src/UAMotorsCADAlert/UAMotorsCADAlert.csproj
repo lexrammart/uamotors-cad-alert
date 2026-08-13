@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>..\..\assets\uamotors.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\assets\cad_alert_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
