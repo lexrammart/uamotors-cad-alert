@@ -2,7 +2,7 @@ name: Compilar EXE para Windows
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feat/*, csharp-* ]
   workflow_dispatch:
 
 jobs:
@@ -13,19 +13,16 @@ jobs:
       - name: Descargar código
         uses: actions/checkout@v4
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          python-version: '3.11'
+          dotnet-version: '8.0.x'
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          pip install watchdog requests pyinstaller
+      - name: Restaurar dependencias
+        run: dotnet restore src/UAMotorsCADAlert/UAMotorsCADAlert.csproj
 
-      - name: Compilar ejecutable
-        run: |
-          pyinstaller -n uamotors_cad_alert --noconsole --onefile --noupx --clean main.py
+      - name: Compilar ejecutable (Single File)
+        run: dotnet publish src/UAMotorsCADAlert/UAMotorsCADAlert.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o dist/
 
       - name: Crear INSTALAR.bat automáticamente
         shell: powershell
@@ -33,11 +30,11 @@ jobs:
           $batContent = @"
           @echo off
           echo Cerrando versiones anteriores...
-          taskkill /F /IM uamotors_cad_alert.exe 2>nul
+          taskkill /F /IM UAMotorsCADAlert.exe 2>nul
           echo Desbloqueando ejecutable...
-          powershell -Command "Unblock-File -Path '%~dp0uamotors_cad_alert.exe'" 2>nul
+          powershell -Command "Unblock-File -Path '%~dp0UAMotorsCADAlert.exe'" 2>nul
           echo Instalando nueva version...
-          start "" "%~dp0uamotors_cad_alert.exe"
+          start "" "%~dp0UAMotorsCADAlert.exe"
           "@
           Set-Content -Path "dist\INSTALAR.bat" -Value $batContent
 
@@ -46,6 +43,6 @@ jobs:
         with:
           name: UAMOTORS_CAD_Instalador
           path: |
-            dist/uamotors_cad_alert.exe
+            dist/UAMotorsCADAlert.exe
             dist/INSTALAR.bat
             INSTRUCCIONES_INSTALACION.txt
