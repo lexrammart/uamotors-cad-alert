@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
+    <ApplicationIcon>..\..\assets\uamotors.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\uamotors.png" LogicalName="UAMotorsCADAlert.Resources.uamotors.png" />
+  </ItemGroup>
 </Project>

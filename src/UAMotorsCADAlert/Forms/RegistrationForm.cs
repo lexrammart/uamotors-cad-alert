@@ -1,5 +1,6 @@
 namespace UAMotorsCADAlert.Forms;
 
+using System.Reflection;
 using UAMotorsCADAlert.Services;
 
 public class RegistrationForm : Form
@@ -19,7 +20,7 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(750, 420);
+        this.Size = new Size(750, 460);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -56,6 +57,25 @@ public class RegistrationForm : Form
             Location = new Point(40, 130)
         };
         this.Controls.Add(emailLabel);
+
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.uamotors.png");
+            if (stream != null && stream.Length > 0)
+            {
+                var logoBox = new PictureBox
+                {
+                    Image = Image.FromStream(stream),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(90, 90),
+                    Location = new Point(600, 25),
+                    BackColor = Color.Transparent
+                };
+                this.Controls.Add(logoBox);
+            }
+        }
+        catch (Exception) { }
 
         _emailInput = new TextBox
         {
@@ -97,7 +117,7 @@ public class RegistrationForm : Form
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 345)
+            Location = new Point(40, 370)
         };
         footerLabel.LinkArea = new LinkArea(17, 17);
         footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
