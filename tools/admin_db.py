@@ -11,19 +11,20 @@ import csv
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 
-# Add parent directory to path to allow importing src.config
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import src.config as config
+# Hardcoded config values since the python backend was migrated to C#
+TARGET_FOLDER = "UAMOTORS"
+REL_DRIVE_DB_PATH = os.path.join("2026", "Design", "Electronics", "Data-Code telemetry", "auamotors_cad_alert", "authorized_users.uamotors")
+MAC_DRIVE_UAMOTORS_PATH = "/Users/alejandro/Library/CloudStorage/GoogleDrive-al2242000248@azc.uam.mx/Shared drives/UAMOTORS"
 
 def get_db_path():
     """Returns the absolute path to the Drive database."""
     if os.name != 'nt':
-        base = config.MAC_DRIVE_UAMOTORS_PATH
+        base = MAC_DRIVE_UAMOTORS_PATH
     else:
         # Fallback to a default or ask user if needed on Windows
-        base = os.path.join(os.path.expanduser("~"), "Google Drive", config.TARGET_FOLDER)
+        base = os.path.join(os.path.expanduser("~"), "Google Drive", TARGET_FOLDER)
     
-    return os.path.join(base, config.REL_DRIVE_DB_PATH)
+    return os.path.join(base, REL_DRIVE_DB_PATH)
 
 
 class AdminPanel(tk.Tk):
