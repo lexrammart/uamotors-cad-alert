@@ -19,70 +19,71 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(460, 310);
+        this.Size = new Size(550, 380);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
         this.StartPosition = FormStartPosition.CenterScreen;
         this.BackColor = Color.FromArgb(248, 250, 252);
+        this.AutoScaleMode = AutoScaleMode.Dpi;
 
         var titleLabel = new Label
         {
-            Text = "⚙️ UAMOTORS CAD Alert",
-            Font = new Font("Segoe UI", 16, FontStyle.Bold),
+            Text = "UAMOTORS CAD Alert",
+            Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(42, 22)
+            Location = new Point(40, 30)
         };
         this.Controls.Add(titleLabel);
 
         var subtitleLabel = new Label
         {
             Text = "Ingresa tu correo institucional para vincular este equipo:",
-            Font = new Font("Segoe UI", 10),
+            Font = new Font("Segoe UI", 11),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
-            Location = new Point(42, 60)
+            Location = new Point(40, 80)
         };
         this.Controls.Add(subtitleLabel);
 
         var emailLabel = new Label
         {
             Text = "Correo Electrónico:",
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            Font = new Font("Segoe UI", 11, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(42, 100)
+            Location = new Point(40, 130)
         };
         this.Controls.Add(emailLabel);
 
         _emailInput = new TextBox
         {
-            Font = new Font("Segoe UI", 11),
-            Size = new Size(360, 30),
-            Location = new Point(42, 125)
+            Font = new Font("Segoe UI", 12),
+            Size = new Size(450, 35),
+            Location = new Point(40, 160)
         };
         this.Controls.Add(_emailInput);
 
         _statusLabel = new Label
         {
             Text = "",
-            Font = new Font("Segoe UI", 9),
+            Font = new Font("Segoe UI", 10),
             AutoSize = false,
-            Size = new Size(360, 40),
-            Location = new Point(42, 165)
+            Size = new Size(450, 45),
+            Location = new Point(40, 205)
         };
         this.Controls.Add(_statusLabel);
 
         _verifyButton = new Button
         {
             Text = "Verificar y Activar Monitoreo",
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            Font = new Font("Segoe UI", 11, FontStyle.Bold),
             BackColor = Color.FromArgb(37, 99, 235),
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Size = new Size(360, 40),
-            Location = new Point(42, 210),
+            Size = new Size(450, 45),
+            Location = new Point(40, 260),
             Cursor = Cursors.Hand
         };
         _verifyButton.FlatAppearance.BorderSize = 0;
