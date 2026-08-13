@@ -11,7 +11,11 @@ from watchdog.observers import Observer
 
 import src.config as config
 from src.services.discord_service import send_discord
-from src.installer.installer import check_single_instance, auto_instalar
+from src.installer.installer import (
+    check_single_instance,
+    auto_instalar,
+    verificar_registro_usuario,
+)
 from src.core.monitor import (
     buscar_carpeta_uamotors,
     sldworks_esta_abierto,
@@ -25,6 +29,10 @@ if __name__ == "__main__":
 
         ruta_activa = buscar_carpeta_uamotors()
         if ruta_activa:
+            import sys
+            if not verificar_registro_usuario(ruta_activa):
+                sys.exit()
+
             send_discord(
                 f"⚙️ Monitoreo de CAD activo desde un nuevo equipo para: `{config.BASE_NAME}`"
             )
