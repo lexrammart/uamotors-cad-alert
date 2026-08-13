@@ -32,7 +32,7 @@ static class Program
                 profile = UserService.LoadLocalProfile();
             }
 
-            DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: **{profile?.Name ?? "Usuario"}**");
+            DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: `{profile?.Name ?? "Usuario"}`");
             
             // This instance keeps a reference to the FileSystemWatcher so it doesn't get garbage collected
             var monitor = new MonitorService(rutaActiva);
