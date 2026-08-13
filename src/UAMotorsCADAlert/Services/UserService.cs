@@ -84,6 +84,6 @@ public static class UserService
             return (true, name, string.Empty);
         }
 
-        return (false, null, "El correo no está registrado en la lista de usuarios autorizados de UAMOTORS.");
+        return (false, null, "Correo no encontrado, verifica que lo ingresaste correctamente o contacta al administrador.");
     }
 }
