@@ -30,19 +30,35 @@ public class MonitorService
     {
         while (true)
         {
-            await Task.Delay(5000);
-            if (!SldworksEstaAbierto())
+            await Task.Delay(5000); // Revisión periódica cada 5 segundos
+            
+            bool isSldworksClosed = !SldworksEstaAbierto();
+            List<string> pathsToCheck;
+            
+            lock (_activeLockPaths)
             {
-                List<string> paths;
-                lock (_activeLockPaths)
+                pathsToCheck = _activeLockPaths.ToList();
+            }
+
+            foreach (var path in pathsToCheck)
+            {
+                // Liberar el estado SI Y SOLO SI:
+                // 1. SolidWorks se cerró por completo (crasheo/cierre normal)
+                // 2. El archivo ya no existe físicamente (el sistema operativo perdió el evento de borrado)
+                // 3. El archivo existe pero ya no está bloqueado por el sistema
+                if (isSldworksClosed || !File.Exists(path) || !EsBloqueoRealSw(path))
                 {
-                    paths = _activeLockPaths.ToList();
-                }
-                foreach (var path in paths)
-                {
-                    if (File.Exists(path))
+                    bool removed;
+                    lock (_activeLockPaths)
                     {
-                        try { File.Delete(path); } catch { }
+                        removed = _activeLockPaths.Remove(path);
+                    }
+                    
+                    if (removed)
+                    {
+                        string filename = Path.GetFileName(path);
+                        string realName = filename.Substring(2);
+                        DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}` (Limpieza Automática)");
                     }
                 }
             }
@@ -85,7 +101,7 @@ public class MonitorService
                 string? candidate = FindFolderDeep(drive.RootDirectory, target, 0, 2);
                 if (candidate != null) return candidate;
             }
-            catch { }
+            catch (Exception) { }
         }
 
         return null;
@@ -111,7 +127,7 @@ public class MonitorService
                 if (found != null) return found;
             }
         }
-        catch { }
+        catch (Exception) { }
         return null;
     }
 
@@ -125,11 +141,11 @@ public class MonitorService
                     return true;
             }
         }
-        catch { }
+        catch (Exception) { }
         return false;
     }
 
-    private static bool EsBloqueoRealSW(string filepath)
+    private static bool EsBloqueoRealSw(string filepath)
     {
         if (Config.Debug) 
             return true; // En modo dev, aceptamos cualquier archivo falso para poder probar rápido
@@ -147,7 +163,7 @@ public class MonitorService
         {
             return true;
         }
-        catch
+        catch (Exception)
         {
             return false;
         }
@@ -158,7 +174,7 @@ public class MonitorService
         string filename = Path.GetFileName(e.FullPath);
         if (Regex.IsMatch(filename, Config.LockPattern, RegexOptions.IgnoreCase))
         {
-            if (!EsBloqueoRealSW(e.FullPath))
+            if (!EsBloqueoRealSw(e.FullPath))
                 return;
 
             lock (_activeLockPaths)
