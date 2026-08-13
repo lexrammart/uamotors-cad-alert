@@ -106,7 +106,7 @@ public class RegistrationForm : Form
             _statusLabel.Text = $"✅ ¡Bienvenido(a) {result.Name}! Registro completado.";
             _statusLabel.ForeColor = Color.FromArgb(22, 163, 74);
             IsRegistered = true;
-            await Task.Delay(1500);
+            await Task.Delay(3000);
             this.Close();
         }
         else

@@ -12,7 +12,7 @@ public class MonitorService
     public MonitorService(string rutaActiva)
     {
         var profile = UserService.LoadLocalProfile();
-        _userDisplay = profile != null ? $"{profile.Name} ({profile.Email})" : "Usuario Desconocido";
+        _userDisplay = profile != null ? profile.Name : "Usuario Desconocido";
 
         _watcher = new FileSystemWatcher(rutaActiva)
         {
@@ -166,7 +166,7 @@ public class MonitorService
                 _activeLockPaths.Add(e.FullPath);
             }
             string realName = filename.Substring(2);
-            DiscordService.SendMessage($"🔴 **[OCUPADO]:** Ensamble en uso (`{realName}`) por **{_userDisplay}**");
+            DiscordService.SendMessage($"🔴 **[OCUPADO]:** Ensamble en uso (`{realName}`) por `{_userDisplay}`");
         }
     }
 
@@ -184,7 +184,7 @@ public class MonitorService
             if (removed)
             {
                 string realName = filename.Substring(2);
-                DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por **{_userDisplay}**");
+                DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}`");
             }
         }
     }
