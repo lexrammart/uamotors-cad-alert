@@ -12,6 +12,8 @@ from tkinter import messagebox
 import socket
 
 import src.config as config
+from src.services.user_service import load_local_profile
+from src.installer.gui import mostrar_ventana_registro
 
 _instance_socket = None
 
@@ -29,12 +31,46 @@ def check_single_instance():
         sys.exit()
 
 
+def kill_previous_instance(executable_name):
+    """
+    Attempts to forcefully close any running instances of the application
+    using taskkill on Windows.
+    """
+    if os.name == 'nt':
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", executable_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=0x08000000
+            )
+        except Exception:
+            pass
+
+
+def verificar_registro_usuario(ruta_uamotors):
+    """
+    Verifies if a local profile exists. If not, launches the GUI registration.
+    Returns True if user is registered, False otherwise.
+    """
+    profile = load_local_profile()
+    if profile:
+        return True
+    
+    # User not registered, prompt GUI
+    return mostrar_ventana_registro(ruta_uamotors)
+
+
 def auto_instalar():
     """
     Manages the automatic installation of the application in the user's AppData directory.
     Checks for previous instances, creates necessary folders, copies the executable, and
     creates a shortcut in the Startup folder.
     """
+    if config.DEBUG or os.name != "nt":
+        print("Modo dev o no-Windows: Saltando auto-instalación.")
+        return
+
     local_appdata = os.environ.get(
         "LOCALAPPDATA", os.path.expanduser(r"~\AppData\Local")
     )
@@ -51,6 +87,7 @@ def auto_instalar():
     legacy_exe_path = os.path.join(startup_folder, executable_name)
 
     if os.path.dirname(actual_path).lower() != install_folder.lower():
+        kill_previous_instance(executable_name)
         if os.path.exists(legacy_exe_path):
             try:
                 os.remove(legacy_exe_path)
