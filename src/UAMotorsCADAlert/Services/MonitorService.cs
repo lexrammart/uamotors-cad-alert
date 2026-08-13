@@ -61,7 +61,7 @@ public class MonitorService
                     {
                         string filename = Path.GetFileName(path);
                         string realName = filename.Substring(2);
-                        DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}` (Limpieza Automática)");
+                        DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}` (Cierre inesperado)");
                     }
                 }
             }

@@ -41,8 +41,9 @@ static class Program
             // This static reference prevents the JIT garbage collector from destroying the watcher in Release mode
             _monitorInstance = new MonitorService(rutaActiva);
 
-            // Keep the application running in the background without a main window
-            Application.Run();
+            // Iniciar el contexto de aplicación del System Tray (icono junto al reloj)
+            var trayContext = new TrayApplicationContext(profile?.Name ?? "Desconocido");
+            Application.Run(trayContext);
         }
         else
         {

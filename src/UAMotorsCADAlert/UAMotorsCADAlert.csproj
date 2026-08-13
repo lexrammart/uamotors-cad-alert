@@ -10,5 +10,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\assets\uamotors.png" LogicalName="UAMotorsCADAlert.Resources.uamotors.png" />
+    <EmbeddedResource Include="..\..\assets\cad_alert_icon.ico" LogicalName="UAMotorsCADAlert.Resources.cad_alert_icon.ico" />
   </ItemGroup>
 </Project>
