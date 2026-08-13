@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace UAMotorsCADAlert.Services;
 
@@ -21,36 +22,96 @@ public class MonitorService
 
         _watcher.Created += OnCreated;
         _watcher.Deleted += OnDeleted;
+
+        Task.Factory.StartNew(GhostLockWatcher, TaskCreationOptions.LongRunning);
+    }
+
+    private async Task GhostLockWatcher()
+    {
+        while (true)
+        {
+            await Task.Delay(5000);
+            if (!SldworksEstaAbierto())
+            {
+                List<string> paths;
+                lock (_activeLockPaths)
+                {
+                    paths = _activeLockPaths.ToList();
+                }
+                foreach (var path in paths)
+                {
+                    if (File.Exists(path))
+                    {
+                        try { File.Delete(path); } catch { }
+                    }
+                }
+            }
+        }
+    }
+
+    public static bool SldworksEstaAbierto()
+    {
+        try
+        {
+            return Process.GetProcessesByName("SLDWORKS").Length > 0;
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public static string? BuscarCarpetaUamotors()
     {
+        string target = Config.TargetFolder;
+        
         string userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string[] driveNames = { "Google Drive", "Drive", "GoogleDrive" };
 
         foreach (var name in driveNames)
         {
-            string path = Path.Combine(userHome, name, Config.TargetFolder);
+            string path = Path.Combine(userHome, name, target);
             if (Directory.Exists(path) && VerificarEnsamble(path))
                 return path;
         }
 
-        foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Fixed))
+        foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady))
         {
+            // Ignoramos C: por rendimiento, asumiendo que Drive crea un disco virtual (G:, H:, etc)
+            if (drive.Name.StartsWith("C", StringComparison.OrdinalIgnoreCase)) continue;
+
             try
             {
-                var dirs = Directory.GetDirectories(drive.RootDirectory.FullName);
-                foreach (var d in dirs)
-                {
-                    if (Path.GetFileName(d).Equals(Config.TargetFolder, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (VerificarEnsamble(d)) return d;
-                    }
-                }
+                string? candidate = FindFolderDeep(drive.RootDirectory, target, 0, 2);
+                if (candidate != null) return candidate;
             }
             catch { }
         }
 
+        return null;
+    }
+
+    private static string? FindFolderDeep(DirectoryInfo dir, string target, int currentDepth, int maxDepth)
+    {
+        if (currentDepth > maxDepth) return null;
+
+        try
+        {
+            foreach (var d in dir.GetDirectories())
+            {
+                if (d.Name.Equals(target, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (VerificarEnsamble(d.FullName)) return d.FullName;
+                }
+            }
+
+            foreach (var d in dir.GetDirectories())
+            {
+                string? found = FindFolderDeep(d, target, currentDepth + 1, maxDepth);
+                if (found != null) return found;
+            }
+        }
+        catch { }
         return null;
     }
 
