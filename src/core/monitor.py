@@ -3,22 +3,41 @@ SolidWorks and file system status monitoring.
 Detects the creation and deletion of temporary lock files
 to infer the usage status of assemblies.
 """
+
 import os
 import subprocess
 import re
 from watchdog.events import FileSystemEventHandler
-import config
-from discord_utils import send_discord
+import src.config as config
+from src.services.discord_service import send_discord
+from src.services.user_service import load_local_profile
+
+
+def es_bloqueo_real_sw(filepath):
+    """
+    Attempts to open the lock file in append mode.
+    If a PermissionError is raised, the local SolidWorks process holds an exclusive lock.
+    If it succeeds, it's either a ghost file or a synced file from another user's Drive.
+    """
+    try:
+        with open(filepath, 'a'):
+            pass
+        return False
+    except PermissionError:
+        return True
+    except Exception:
+        # En caso de otro error (ej. archivo ya no existe), asumimos que no está bloqueado 
+        return False
 
 
 def _verificar_ensamble(ruta):
     """
     Recursively verifies if a directory contains any file
     matching the expected assembly pattern.
-    
+
     Args:
         ruta (str): Root directory to inspect.
-        
+
     Returns:
         bool: True if a valid file is found, False otherwise.
     """
@@ -33,7 +52,7 @@ def buscar_carpeta_uamotors():
     """
     Searches for the configured target path in local and cloud drives.
     Validates the found folder using _verificar_ensamble().
-    
+
     Returns:
         str or None: The absolute path of the validated folder, or None if not found.
     """
@@ -62,9 +81,9 @@ def buscar_carpeta_uamotors():
 
 def sldworks_esta_abierto():
     """
-    Verifies via command line if the SolidWorks process 
+    Verifies via command line if the SolidWorks process
     is currently active in the operating system's task list.
-    
+
     Returns:
         bool: True if the process is running or if an error occurs, False otherwise.
     """
@@ -79,24 +98,36 @@ def sldworks_esta_abierto():
 
 class SWMonitorHandler(FileSystemEventHandler):
     """
-    File system event handler. 
+    File system event handler.
     Reacts to file creation and deletion to update the assembly status.
     """
+
     def __init__(self):
         super().__init__()
         self.active_lock_paths = set()
+        
+        # Cargar perfil del usuario actual para las alertas
+        profile = load_local_profile()
+        if profile:
+            self.user_display = f"{profile.get('nombre', 'Usuario')} ({profile.get('email', '')})"
+        else:
+            self.user_display = "Usuario Desconocido"
 
     def on_created(self, event):
         filename = os.path.basename(event.src_path)
         if re.match(config.LOCK_PATTERN, filename, re.IGNORECASE):
+            # Solo notificar si el archivo está realmente bloqueado por el SO local
+            if not es_bloqueo_real_sw(event.src_path):
+                return
+                
             self.active_lock_paths.add(event.src_path)
             real_name = filename[2:]
-            send_discord(f"🔴 **[OCUPADO]:** Ensamble en uso (`{real_name}`)")
+            send_discord(f"🔴 **[OCUPADO]:** Ensamble en uso (`{real_name}`) por **{self.user_display}**")
 
     def on_deleted(self, event):
         filename = os.path.basename(event.src_path)
         if re.match(config.LOCK_PATTERN, filename, re.IGNORECASE):
             if event.src_path in self.active_lock_paths:
                 self.active_lock_paths.remove(event.src_path)
-            real_name = filename[2:]
-            send_discord(f"🟢 **[LIBRE]:** Ensamble disponible (`{real_name}`)")
+                real_name = filename[2:]
+                send_discord(f"🟢 **[LIBRE]:** Ensamble disponible (`{real_name}`) - Liberado por **{self.user_display}**")
