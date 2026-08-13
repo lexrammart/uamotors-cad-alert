@@ -8,10 +8,10 @@ public static class Config
     public const bool Debug = true;
     
     public const string TargetFolder = "UAMOTORS";
-    public const string BaseName = "OP-01assembly";
+    public const string BaseName = "OP-01assembly / GENERAL ASSEMBLY E";
     
-    public const string AssemblyPattern = @"^OP-01assembly\d*\.SLDASM$";
-    public const string LockPattern = @"^~\$OP-01assembly\d*\.SLDASM$";
+    public const string AssemblyPattern = @"^(OP-01assembly\d*|GENERAL ASSEMBLY E)\.SLDASM$";
+    public const string LockPattern = @"^~\$(OP-01assembly\d*|GENERAL ASSEMBLY E)\.SLDASM$";
     
     public const string InstallFolderName = "UAMotorsCAD";
     

@@ -131,6 +131,9 @@ public class MonitorService
 
     private static bool EsBloqueoRealSW(string filepath)
     {
+        if (Config.Debug) 
+            return true; // En modo dev, aceptamos cualquier archivo falso para poder probar rápido
+
         try
         {
             using var fs = new FileStream(filepath, FileMode.Append, FileAccess.Write, FileShare.None);
