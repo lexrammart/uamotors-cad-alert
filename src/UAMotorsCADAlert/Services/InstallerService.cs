@@ -42,8 +42,6 @@ public static class InstallerService
 
             CreateScheduledTask(targetPath);
             CreateStartMenuShortcut(targetPath, exeName);
-
-            MessageBox.Show("¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas y se iniciarán con el sistema.", "UAMOTORS CAD", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
             Process.Start(new ProcessStartInfo
             {
