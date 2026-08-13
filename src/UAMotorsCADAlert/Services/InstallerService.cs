@@ -45,7 +45,11 @@ public static class InstallerService
 
             MessageBox.Show("¡Instalación completada!\nLas alertas de SolidWorks quedaron activadas y se iniciarán con el sistema.", "UAMOTORS CAD", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
-            Process.Start(targetPath);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = targetPath,
+                WorkingDirectory = installFolder
+            });
             Environment.Exit(0);
         }
     }
