@@ -19,7 +19,7 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(750, 380);
+        this.Size = new Size(750, 420);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -70,7 +70,7 @@ public class RegistrationForm : Form
             Text = "",
             Font = new Font("Segoe UI", 10),
             AutoSize = false,
-            Size = new Size(650, 45),
+            Size = new Size(650, 60),
             Location = new Point(40, 205)
         };
         this.Controls.Add(_statusLabel);
@@ -83,7 +83,7 @@ public class RegistrationForm : Form
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
             Size = new Size(650, 45),
-            Location = new Point(40, 260),
+            Location = new Point(40, 280),
             Cursor = Cursors.Hand
         };
         _verifyButton.FlatAppearance.BorderSize = 0;
@@ -114,6 +114,7 @@ public class RegistrationForm : Form
             _statusLabel.Text = $"❌ {result.ErrorMsg}";
             _statusLabel.ForeColor = Color.FromArgb(220, 38, 38);
             _verifyButton.Enabled = true;
+            _emailInput.Enabled = true;
         }
     }
 }
