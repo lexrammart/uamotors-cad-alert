@@ -30,23 +30,13 @@ public class RegistrationForm : Form
 
         var titleLabel = new Label
         {
-            Text = "UAMOTORS CAD Alert",
+            Text = "UAMOTORS CAD Alert v2.0",
             Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
             Location = new Point(40, 30)
         };
         this.Controls.Add(titleLabel);
-
-        var versionLabel = new Label
-        {
-            Text = "v2.0",
-            Font = new Font("Segoe UI", 9, FontStyle.Bold),
-            ForeColor = Color.FromArgb(100, 116, 139),
-            AutoSize = true,
-            Location = new Point(40, 65)
-        };
-        this.Controls.Add(versionLabel);
 
         var subtitleLabel = new Label
         {
@@ -127,11 +117,21 @@ public class RegistrationForm : Form
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 410)
+            Location = new Point(40, 395)
         };
         footerLabel.LinkArea = new LinkArea(17, 17);
         footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
         this.Controls.Add(footerLabel);
+
+        var uamLabel = new Label
+        {
+            Text = "Universidad Autónoma Metropolitana",
+            Font = new Font("Segoe UI", 9, FontStyle.Italic),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Location = new Point(40, 420)
+        };
+        this.Controls.Add(uamLabel);
 
         // Permitir que la tecla Enter active el botón
         this.AcceptButton = _verifyButton;
