@@ -20,10 +20,12 @@ def _discord_worker():
     """
     while True:
         message = _message_queue.get()
+        webhook_to_use = config.DEV_WEBHOOK_URL if config.DEBUG else config.WEBHOOK_URL
+        
         while True:
             try:
                 response = requests.post(
-                    config.WEBHOOK_URL, json={"content": message}, timeout=10
+                    webhook_to_use, json={"content": message}, timeout=10
                 )
                 if response.status_code == 429:
                     time.sleep(5)

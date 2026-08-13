@@ -25,14 +25,18 @@ jobs:
 
       - name: Compilar ejecutable
         run: |
-          pyinstaller -n uamotors_cad_alert --noconsole --onefile main.py
+          pyinstaller -n uamotors_cad_alert --noconsole --onefile --noupx --clean main.py
 
       - name: Crear INSTALAR.bat automáticamente
         shell: powershell
         run: |
           $batContent = @"
           @echo off
+          echo Cerrando versiones anteriores...
+          taskkill /F /IM uamotors_cad_alert.exe 2>nul
+          echo Desbloqueando ejecutable...
           powershell -Command "Unblock-File -Path '%~dp0uamotors_cad_alert.exe'" 2>nul
+          echo Instalando nueva version...
           start "" "%~dp0uamotors_cad_alert.exe"
           "@
           Set-Content -Path "dist\INSTALAR.bat" -Value $batContent
