@@ -20,7 +20,7 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(750, 460);
+        this.Size = new Size(750, 480);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -38,13 +38,23 @@ public class RegistrationForm : Form
         };
         this.Controls.Add(titleLabel);
 
+        var versionLabel = new Label
+        {
+            Text = "v2.0",
+            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Location = new Point(40, 65)
+        };
+        this.Controls.Add(versionLabel);
+
         var subtitleLabel = new Label
         {
             Text = "Ingresa tu correo institucional para vincular este equipo:",
             Font = new Font("Segoe UI", 11),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
-            Location = new Point(40, 80)
+            Location = new Point(40, 95)
         };
         this.Controls.Add(subtitleLabel);
 
@@ -54,7 +64,7 @@ public class RegistrationForm : Form
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(40, 130)
+            Location = new Point(40, 140)
         };
         this.Controls.Add(emailLabel);
 
@@ -81,7 +91,7 @@ public class RegistrationForm : Form
         {
             Font = new Font("Segoe UI", 12),
             Size = new Size(650, 35),
-            Location = new Point(40, 160)
+            Location = new Point(40, 170)
         };
         this.Controls.Add(_emailInput);
 
@@ -91,7 +101,7 @@ public class RegistrationForm : Form
             Font = new Font("Segoe UI", 10),
             AutoSize = false,
             Size = new Size(650, 60),
-            Location = new Point(40, 205)
+            Location = new Point(40, 215)
         };
         this.Controls.Add(_statusLabel);
 
@@ -103,7 +113,7 @@ public class RegistrationForm : Form
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
             Size = new Size(650, 45),
-            Location = new Point(40, 280),
+            Location = new Point(40, 290),
             Cursor = Cursors.Hand
         };
         _verifyButton.FlatAppearance.BorderSize = 0;
@@ -117,7 +127,7 @@ public class RegistrationForm : Form
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 370)
+            Location = new Point(40, 390)
         };
         footerLabel.LinkArea = new LinkArea(17, 17);
         footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
