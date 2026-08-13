@@ -17,10 +17,13 @@ public class MonitorService
         _watcher = new FileSystemWatcher(rutaActiva)
         {
             IncludeSubdirectories = true,
-            EnableRaisingEvents = true
+            EnableRaisingEvents = true,
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.Attributes
         };
 
         _watcher.Created += OnCreated;
+        _watcher.Changed += OnCreated;
+        _watcher.Renamed += OnRenamed;
         _watcher.Deleted += OnDeleted;
 
         Task.Factory.StartNew(GhostLockWatcher, TaskCreationOptions.LongRunning);
@@ -147,20 +150,48 @@ public class MonitorService
 
     private static bool EsBloqueoRealSw(string filepath)
     {
+        // En modo dev aceptamos simulaciones.
         if (Config.Debug) 
-            return true; // En modo dev, aceptamos cualquier archivo falso para poder probar rápido
-
+            return true; 
+            
+        // 1. Si SolidWorks ni siquiera está abierto en esta compu, es 100% seguro que 
+        // el archivo fue sincronizado por Google Drive desde la compu de alguien más.
+        if (!SldworksEstaAbierto())
+            return false;
+            
         try
         {
-            using var fs = new FileStream(filepath, FileMode.Append, FileAccess.Write, FileShare.None);
+            // 2. Ignorar archivos "fantasma" muy viejos que Google Drive pueda estar 
+            // sincronizando o actualizando tardíamente. Si tiene más de 5 minutos de viejo, es un fantasma atascado.
+            if (DateTime.Now - File.GetLastWriteTime(filepath) > TimeSpan.FromMinutes(5))
+                return false;
+
+            // 3. Leemos el contenido del archivo ~$ de SolidWorks.  
+            // SolidWorks graba el nombre de usuario de Windows adentro del archivo.
+            using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new BinaryReader(fs);
+            byte[] bytes = reader.ReadBytes((int)fs.Length);
+            
+            string ascii = System.Text.Encoding.ASCII.GetString(bytes);
+            string unicode = System.Text.Encoding.Unicode.GetString(bytes);
+            string defaultEnc = System.Text.Encoding.Default.GetString(bytes);
+            
+            // Verificamos si nuestro nombre de usuario de Windows está dentro del archivo
+            if (ascii.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) || 
+                unicode.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) ||
+                defaultEnc.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true; // ¡Nosotros somos los dueños del candado!
+            }
+            
+            // Si el archivo se pudo leer y NO tiene nuestro nombre de usuario,
+            // significa que alguien más lo bloqueó y Google Drive nos lo sincronizó.
             return false;
         }
         catch (IOException)
         {
-            return true;
-        }
-        catch (UnauthorizedAccessException)
-        {
+            // Si lanza IOException, significa que un proceso local (SLDWORKS)
+            // lo tiene bloqueado de forma estricta. Asumimos que es un bloqueo local válido.
             return true;
         }
         catch (Exception)
@@ -169,17 +200,24 @@ public class MonitorService
         }
     }
 
+    private void OnRenamed(object sender, RenamedEventArgs e)
+    {
+        OnCreated(sender, e);
+    }
+
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
         string filename = Path.GetFileName(e.FullPath);
         if (Regex.IsMatch(filename, Config.LockPattern, RegexOptions.IgnoreCase))
         {
+            // 1. Validar que sea un candado real y nuestro (usuario coincida y sea reciente)
             if (!EsBloqueoRealSw(e.FullPath))
                 return;
 
             lock (_activeLockPaths)
             {
-                _activeLockPaths.Add(e.FullPath);
+                if (!_activeLockPaths.Add(e.FullPath))
+                    return; // Si ya estaba registrado, ignorar para no mandar 2 mensajes
             }
             string realName = filename.Substring(2);
             DiscordService.SendMessage($"🔴 **[OCUPADO]:** Ensamble en uso (`{realName}`) por `{_userDisplay}`");
