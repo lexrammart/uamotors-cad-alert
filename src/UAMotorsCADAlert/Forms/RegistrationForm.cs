@@ -49,7 +49,7 @@ public class RegistrationForm : Form
 
         var emailLabel = new Label
         {
-            Text = "Correo Electrónico:",
+            Text = "Correo: ",
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
@@ -77,9 +77,9 @@ public class RegistrationForm : Form
 
         _verifyButton = new Button
         {
-            Text = "Verificar y Activar Monitoreo",
+            Text = "Verificar y activar monitoreo",
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
-            BackColor = Color.FromArgb(37, 99, 235),
+            BackColor = Color.FromArgb(220, 38, 38), // Rojo
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
             Size = new Size(650, 45),
@@ -89,6 +89,22 @@ public class RegistrationForm : Form
         _verifyButton.FlatAppearance.BorderSize = 0;
         _verifyButton.Click += VerifyButton_Click;
         this.Controls.Add(_verifyButton);
+
+        var footerLabel = new LinkLabel
+        {
+            Text = "Desarrollado por Alejandro Ramírez | UAMOTORS, Departamento de Electronics",
+            Font = new Font("Segoe UI", 9),
+            LinkColor = Color.FromArgb(37, 99, 235),
+            ActiveLinkColor = Color.FromArgb(37, 99, 235),
+            AutoSize = true,
+            Location = new Point(40, 345)
+        };
+        footerLabel.LinkArea = new LinkArea(17, 17);
+        footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
+        this.Controls.Add(footerLabel);
+
+        // Permitir que la tecla Enter active el botón
+        this.AcceptButton = _verifyButton;
     }
 
     private async void VerifyButton_Click(object? sender, EventArgs e)
@@ -103,7 +119,7 @@ public class RegistrationForm : Form
         if (result.Success)
         {
             UserService.SaveLocalProfile(email, result.Name!);
-            _statusLabel.Text = $"✅ ¡Bienvenido(a) {result.Name}! Registro completado.";
+            _statusLabel.Text = $"✅ ¡Bienvenidx {result.Name}! Registro completado.";
             _statusLabel.ForeColor = Color.FromArgb(22, 163, 74);
             IsRegistered = true;
             await Task.Delay(3000);

@@ -5,7 +5,7 @@ public static class Config
     public const string WebhookUrl = "https://discord.com/api/webhooks/1533988281195171962/nv3cJEvWrUhcEPDo1zH5zjcABusHsdbl65PCaYNPJwpXtLg6gPWTp1DcxH7OOVyEI5nM";
     public const string DevWebhookUrl = "https://discord.com/api/webhooks/1537230363766689914/Jij7QPz07-IfrmHdgDhEB762T2BsguRg0_73hr1QakDtPCcObrof--Gbk3rDt5_WVjBy";
     
-    public const bool Debug = true;
+    public static bool Debug = true;
     
     public const string TargetFolder = "UAMOTORS";
     public const string BaseName = "OP-01assembly / GENERAL ASSEMBLY E";
