@@ -27,6 +27,7 @@ public static class InstallerService
 
         if (!actualPath.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
         {
+            CleanupOldPythonVersion();
             KillPreviousInstance(exeName);
 
             try
@@ -62,6 +63,39 @@ public static class InstallerService
                     p.Kill();
                     p.WaitForExit();
                 }
+            }
+        }
+        catch { }
+    }
+
+    private static void CleanupOldPythonVersion()
+    {
+        try
+        {
+            // 1. Matar el proceso compilado de la versión anterior en Python
+            foreach (var p in Process.GetProcessesByName("uamotors_cad_alert"))
+            {
+                p.Kill();
+                p.WaitForExit(2000);
+            }
+
+            // 2. Limpiar la carpeta de inicio (Startup) de accesos directos o scripts .bat viejos
+            string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+            foreach (var file in Directory.GetFiles(startupFolder))
+            {
+                string name = Path.GetFileName(file).ToLower();
+                if (name.Contains("uamotors") || name.Contains("cad_alert"))
+                {
+                    File.Delete(file);
+                }
+            }
+
+            // 3. Limpiar el registro de Windows (por si la versión vieja se ancló ahí)
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+            if (key != null)
+            {
+                if (key.GetValue("UAMotorsCADAlert") != null) key.DeleteValue("UAMotorsCADAlert", false);
+                if (key.GetValue("uamotors_cad_alert") != null) key.DeleteValue("uamotors_cad_alert", false);
             }
         }
         catch { }
