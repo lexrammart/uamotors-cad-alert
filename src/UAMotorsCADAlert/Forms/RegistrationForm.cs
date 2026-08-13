@@ -20,7 +20,7 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(750, 480);
+        this.Size = new Size(750, 500);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -41,7 +41,7 @@ public class RegistrationForm : Form
         var versionLabel = new Label
         {
             Text = "v2.0",
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            Font = new Font("Segoe UI", 9, FontStyle.Bold),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
             Location = new Point(40, 65)
@@ -127,7 +127,7 @@ public class RegistrationForm : Form
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 390)
+            Location = new Point(40, 410)
         };
         footerLabel.LinkArea = new LinkArea(17, 17);
         footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
