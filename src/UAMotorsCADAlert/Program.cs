@@ -5,8 +5,6 @@ namespace UAMotorsCADAlert;
 
 static class Program
 {
-    private static MonitorService? _monitorInstance;
-
     [STAThread]
     static void Main()
     {

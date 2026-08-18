@@ -1,4 +1,5 @@
 using System.Reflection;
+using UAMotorsCADAlert.Services;
 
 namespace UAMotorsCADAlert;
 
@@ -7,10 +8,10 @@ public class TrayApplicationContext : ApplicationContext
     private readonly NotifyIcon _trayIcon;
 
     private MonitorService? _monitorInstance;
-    private Models.UserProfile? _profile;
+    private UserProfile? _profile;
     private string _currentVersion;
 
-    public TrayApplicationContext(Models.UserProfile? profile)
+    public TrayApplicationContext(UserProfile? profile)
     {
         _profile = profile;
         _currentVersion = Services.OtaUpdateService.GetCurrentVersion();
