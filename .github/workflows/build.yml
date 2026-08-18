@@ -1,8 +1,8 @@
 name: Compilar EXE para Windows
 
 on:
-  push:
-    branches: [ main, master, feat/*, csharp-* ]
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -38,11 +38,10 @@ jobs:
           "@
           Set-Content -Path "dist\INSTALAR.bat" -Value $batContent
 
-      - name: Subir artefacto (.zip con instalador)
-        uses: actions/upload-artifact@v4
+      - name: Subir ejecutable al Release automáticamente
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
         with:
-          name: UAMOTORS_CAD_Instalador
-          path: |
-            dist/UAMotorsCADAlert.exe
-            dist/INSTALAR.bat
-            INSTRUCCIONES_INSTALACION.txt
+          files: dist/UAMotorsCADAlert.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
