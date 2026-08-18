@@ -17,6 +17,22 @@ public class RegistrationForm : Form
         InitializeComponent();
     }
 
+    private string GetVersion()
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.version.txt");
+            if (stream != null)
+            {
+                using var reader = new StreamReader(stream);
+                return "v" + reader.ReadToEnd().Trim();
+            }
+        }
+        catch { }
+        return "v2.0";
+    }
+
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD ALERT - Registro";
@@ -27,46 +43,67 @@ public class RegistrationForm : Form
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.AutoScaleMode = AutoScaleMode.Dpi;
 
-        // Auto-dimensionamiento
         this.AutoSize = true;
         this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         this.MinimumSize = new Size(720, 0);
 
-        // Panel principal
         var mainLayout = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 1,
-            Padding = new Padding(35, 25, 35, 30)
+            Padding = new Padding(35, 15, 35, 30)
         };
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
         this.Controls.Add(mainLayout);
 
-        var headerPanel = new TableLayoutPanel
+        // -- TOP HEADER (Version Label top right) --
+        var versionLabel = new Label
         {
-            Dock = DockStyle.Top,
+            Text = GetVersion(),
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(148, 163, 184), // Gris
             AutoSize = true,
-            ColumnCount = 2,
-            RowCount = 1,
-            Margin = new Padding(0, 0, 0, 15)
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Margin = new Padding(0, 0, 0, 0)
         };
-        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80f));
-        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+        mainLayout.Controls.Add(versionLabel);
 
+        // -- BANNER IMAGE (SVG converted to PNG) --
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert_banner.png");
+            if (stream != null && stream.Length > 0)
+            {
+                var bannerBox = new PictureBox
+                {
+                    Image = Image.FromStream(stream),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Height = 65,
+                    Dock = DockStyle.Top,
+                    BackColor = Color.Transparent,
+                    Margin = new Padding(0, 5, 0, 15)
+                };
+                mainLayout.Controls.Add(bannerBox);
+            }
+        }
+        catch (Exception) { }
+
+        // -- TITLES --
         var titleBox = new FlowLayoutPanel
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
             FlowDirection = FlowDirection.TopDown,
             AutoSize = true,
             WrapContents = false,
-            Margin = new Padding(0)
+            Margin = new Padding(0, 0, 0, 15)
         };
 
         var titleLabel = new Label
         {
-            Text = "UAMOTORS CAD ALERT v2.0",
+            Text = "UAMOTORS CAD ALERT",
             Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
@@ -83,30 +120,9 @@ public class RegistrationForm : Form
             Margin = new Padding(0)
         };
         titleBox.Controls.Add(subtitleLabel);
-        headerPanel.Controls.Add(titleBox, 0, 0);
+        mainLayout.Controls.Add(titleBox);
 
-        try
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert.png");
-            if (stream != null && stream.Length > 0)
-            {
-                var logoBox = new PictureBox
-                {
-                    Image = Image.FromStream(stream),
-                    SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(80, 80),
-                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                    BackColor = Color.Transparent,
-                    Margin = new Padding(0)
-                };
-                headerPanel.Controls.Add(logoBox, 1, 0);
-            }
-        }
-        catch (Exception) { }
-
-        mainLayout.Controls.Add(headerPanel);
-
+        // -- INPUT --
         var emailLabel = new Label
         {
             Text = "Correo:",
@@ -136,6 +152,7 @@ public class RegistrationForm : Form
         };
         mainLayout.Controls.Add(_statusLabel);
 
+        // -- BUTTON --
         _verifyButton = new Button
         {
             Text = "Verificar y activar monitoreo",
@@ -152,29 +169,56 @@ public class RegistrationForm : Form
         _verifyButton.Click += VerifyButton_Click;
         mainLayout.Controls.Add(_verifyButton);
 
-        var footerLabel = new LinkLabel
+        // -- FOOTER (3 centered rows) --
+        var footerPanel = new TableLayoutPanel
         {
-            Text = "Desarrollado por Alejandro Ramírez | UAMOTORS, Departamento de Electrónica",
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 1,
+            RowCount = 3,
+            Margin = new Padding(0)
+        };
+        footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+
+        var row1 = new Label
+        {
+            Text = "UAMOTORS | Departamento de Electronics",
+            Font = new Font("Segoe UI", 9, FontStyle.Bold),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Anchor = AnchorStyles.None,
+            Margin = new Padding(0, 0, 0, 4)
+        };
+        footerPanel.Controls.Add(row1, 0, 0);
+
+        var row2 = new Label
+        {
+            Text = "Universidad Autónoma Metropolitana",
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Anchor = AnchorStyles.None,
+            Margin = new Padding(0, 0, 0, 4)
+        };
+        footerPanel.Controls.Add(row2, 0, 1);
+
+        var row3 = new LinkLabel
+        {
+            Text = "Desarrollado por Alejandro Ramírez",
             Font = new Font("Segoe UI", 9),
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Margin = new Padding(0, 0, 0, 4)
-        };
-        footerLabel.LinkArea = new LinkArea(17, 17);
-        footerLabel.LinkClicked += (s, ev) => 
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
-        mainLayout.Controls.Add(footerLabel);
-
-        var uamLabel = new Label
-        {
-            Text = "Universidad Autónoma Metropolitana",
-            Font = new Font("Segoe UI", 9, FontStyle.Italic),
-            ForeColor = Color.FromArgb(100, 116, 139),
-            AutoSize = true,
+            Anchor = AnchorStyles.None,
+            LinkBehavior = LinkBehavior.NeverUnderline,
             Margin = new Padding(0)
         };
-        mainLayout.Controls.Add(uamLabel);
+        row3.LinkArea = new LinkArea(17, 17);
+        row3.LinkClicked += (s, ev) => 
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
+        footerPanel.Controls.Add(row3, 0, 2);
+
+        mainLayout.Controls.Add(footerPanel);
 
         this.AcceptButton = _verifyButton;
     }
