@@ -25,7 +25,7 @@ public class TrayApplicationContext : ApplicationContext
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert_icon.ico");
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert.ico");
             if (stream != null)
             {
                 return new Icon(stream);
