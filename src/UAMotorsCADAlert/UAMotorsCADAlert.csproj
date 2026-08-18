@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\cad_alert.png" LogicalName="UAMotorsCADAlert.Resources.cad_alert.png" />
+    <EmbeddedResource Include="..\..\assets\cad_alert_banner.png" LogicalName="UAMotorsCADAlert.Resources.cad_alert_banner.png" />
     <EmbeddedResource Include="..\..\assets\cad_alert.ico" LogicalName="UAMotorsCADAlert.Resources.cad_alert.ico" />
+    <EmbeddedResource Include="version.txt" LogicalName="UAMotorsCADAlert.version.txt" />
   </ItemGroup>
 </Project>
