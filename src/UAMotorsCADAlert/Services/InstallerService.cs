@@ -18,7 +18,8 @@ public static class InstallerService
 
     public static void AutoInstalar()
     {
-        if (Config.Debug) return;
+        if (Config.Debug || System.Diagnostics.Debugger.IsAttached || AppDomain.CurrentDomain.BaseDirectory.Contains("bin\\Debug", StringComparison.OrdinalIgnoreCase)) 
+            return;
 
         string actualPath = Environment.ProcessPath ?? Assembly.GetExecutingAssembly().Location;
         string exeName = Path.GetFileName(actualPath);
