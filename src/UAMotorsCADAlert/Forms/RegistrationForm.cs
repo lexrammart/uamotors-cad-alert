@@ -20,7 +20,6 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD ALERT - Registro";
-        this.Size = new Size(750, 500);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -28,15 +27,52 @@ public class RegistrationForm : Form
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.AutoScaleMode = AutoScaleMode.Dpi;
 
+        // Auto-dimensionamiento
+        this.AutoSize = true;
+        this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        this.MinimumSize = new Size(720, 0);
+
+        // Panel principal
+        var mainLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 1,
+            Padding = new Padding(35, 25, 35, 30)
+        };
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        this.Controls.Add(mainLayout);
+
+        var headerPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(0, 0, 0, 15)
+        };
+        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80f));
+        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+
+        var titleBox = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.TopDown,
+            AutoSize = true,
+            WrapContents = false,
+            Margin = new Padding(0)
+        };
+
         var titleLabel = new Label
         {
             Text = "UAMOTORS CAD ALERT v2.0",
             Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(40, 30)
+            Margin = new Padding(0, 0, 0, 8)
         };
-        this.Controls.Add(titleLabel);
+        titleBox.Controls.Add(titleLabel);
 
         var subtitleLabel = new Label
         {
@@ -44,19 +80,10 @@ public class RegistrationForm : Form
             Font = new Font("Segoe UI", 11),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
-            Location = new Point(40, 95)
+            Margin = new Padding(0)
         };
-        this.Controls.Add(subtitleLabel);
-
-        var emailLabel = new Label
-        {
-            Text = "Correo: ",
-            Font = new Font("Segoe UI", 11, FontStyle.Bold),
-            ForeColor = Color.FromArgb(15, 23, 42),
-            AutoSize = true,
-            Location = new Point(40, 140)
-        };
-        this.Controls.Add(emailLabel);
+        titleBox.Controls.Add(subtitleLabel);
+        headerPanel.Controls.Add(titleBox, 0, 0);
 
         try
         {
@@ -68,60 +95,76 @@ public class RegistrationForm : Form
                 {
                     Image = Image.FromStream(stream),
                     SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(90, 90),
-                    Location = new Point(600, 25),
-                    BackColor = Color.Transparent
+                    Size = new Size(80, 80),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                    BackColor = Color.Transparent,
+                    Margin = new Padding(0)
                 };
-                this.Controls.Add(logoBox);
+                headerPanel.Controls.Add(logoBox, 1, 0);
             }
         }
         catch (Exception) { }
 
+        mainLayout.Controls.Add(headerPanel);
+
+        var emailLabel = new Label
+        {
+            Text = "Correo:",
+            Font = new Font("Segoe UI", 11, FontStyle.Bold),
+            ForeColor = Color.FromArgb(15, 23, 42),
+            AutoSize = true,
+            Margin = new Padding(0, 5, 0, 6)
+        };
+        mainLayout.Controls.Add(emailLabel);
+
         _emailInput = new TextBox
         {
             Font = new Font("Segoe UI", 12),
-            Size = new Size(650, 35),
-            Location = new Point(40, 170)
+            Dock = DockStyle.Top,
+            Margin = new Padding(0, 0, 0, 10)
         };
-        this.Controls.Add(_emailInput);
+        mainLayout.Controls.Add(_emailInput);
 
         _statusLabel = new Label
         {
             Text = "",
             Font = new Font("Segoe UI", 10),
-            AutoSize = false,
-            Size = new Size(650, 60),
-            Location = new Point(40, 215)
+            AutoSize = true,
+            Dock = DockStyle.Top,
+            MinimumSize = new Size(0, 24),
+            Margin = new Padding(0, 0, 0, 15)
         };
-        this.Controls.Add(_statusLabel);
+        mainLayout.Controls.Add(_statusLabel);
 
         _verifyButton = new Button
         {
             Text = "Verificar y activar monitoreo",
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
-            BackColor = Color.FromArgb(220, 38, 38), // Rojo
+            BackColor = Color.FromArgb(220, 38, 38),
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Size = new Size(650, 45),
-            Location = new Point(40, 290),
-            Cursor = Cursors.Hand
+            Height = 46,
+            Dock = DockStyle.Top,
+            Cursor = Cursors.Hand,
+            Margin = new Padding(0, 0, 0, 25)
         };
         _verifyButton.FlatAppearance.BorderSize = 0;
         _verifyButton.Click += VerifyButton_Click;
-        this.Controls.Add(_verifyButton);
+        mainLayout.Controls.Add(_verifyButton);
 
         var footerLabel = new LinkLabel
         {
-            Text = "Desarrollado por Alejandro Ramírez | UAMOTORS, Departamento de Electronics",
+            Text = "Desarrollado por Alejandro Ramírez | UAMOTORS, Departamento de Electrónica",
             Font = new Font("Segoe UI", 9),
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 395)
+            Margin = new Padding(0, 0, 0, 4)
         };
         footerLabel.LinkArea = new LinkArea(17, 17);
-        footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
-        this.Controls.Add(footerLabel);
+        footerLabel.LinkClicked += (s, ev) => 
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
+        mainLayout.Controls.Add(footerLabel);
 
         var uamLabel = new Label
         {
@@ -129,11 +172,10 @@ public class RegistrationForm : Form
             Font = new Font("Segoe UI", 9, FontStyle.Italic),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
-            Location = new Point(40, 420)
+            Margin = new Padding(0)
         };
-        this.Controls.Add(uamLabel);
+        mainLayout.Controls.Add(uamLabel);
 
-        // Permitir que la tecla Enter active el botón
         this.AcceptButton = _verifyButton;
     }
 
@@ -149,7 +191,7 @@ public class RegistrationForm : Form
         if (result.Success)
         {
             UserService.SaveLocalProfile(email, result.Name!);
-            _statusLabel.Text = $"✅ ¡Bienvenidx {result.Name}! Registro completado.";
+            _statusLabel.Text = $"Registro completado para el usuario: {result.Name}.";
             _statusLabel.ForeColor = Color.FromArgb(22, 163, 74);
             IsRegistered = true;
             await Task.Delay(3000);
@@ -157,7 +199,7 @@ public class RegistrationForm : Form
         }
         else
         {
-            _statusLabel.Text = $"❌ {result.ErrorMsg}";
+            _statusLabel.Text = result.ErrorMsg;
             _statusLabel.ForeColor = Color.FromArgb(220, 38, 38);
             _verifyButton.Enabled = true;
             _emailInput.Enabled = true;
