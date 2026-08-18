@@ -6,16 +6,21 @@ public class TrayApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _trayIcon;
 
-    public TrayApplicationContext(string userDisplay)
+    private MonitorService? _monitorInstance;
+    private Models.UserProfile? _profile;
+    private string _currentVersion;
+
+    public TrayApplicationContext(Models.UserProfile? profile)
     {
-        string currentVersion = Services.OtaUpdateService.GetCurrentVersion();
+        _profile = profile;
+        _currentVersion = Services.OtaUpdateService.GetCurrentVersion();
         
         _trayIcon = new NotifyIcon()
         {
             Icon = LoadIcon(),
             ContextMenuStrip = new ContextMenuStrip(),
             Visible = true,
-            Text = $"UAMOTORS CAD ALERT ({currentVersion})\nUsuario: {userDisplay}"
+            Text = GetTrayText(false)
         };
 
         var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD ALERT", null, Exit);
@@ -25,6 +30,96 @@ public class TrayApplicationContext : ApplicationContext
         {
             _trayIcon.ShowBalloonTip(3000, "Actualización Automática", msg, ToolTipIcon.Info);
         });
+
+        // Iniciar el watcher asíncrono sin bloquear el hilo principal
+        Task.Run(() => StartDriveConnectionWatcher());
+    }
+
+    private string GetTrayText(bool isConnected)
+    {
+        string username = _profile?.Name ?? "Sin registrar";
+        string text = $"UAMOTORS CAD ALERT ({_currentVersion})\nUSUARIO: {username}";
+        if (!isConnected)
+        {
+            text += "\nSin conexión con Drive";
+        }
+        
+        // Ensure text is not longer than 63 chars (Windows limit)
+        if (text.Length >= 64) text = text.Substring(0, 63);
+        return text;
+    }
+
+    private async Task StartDriveConnectionWatcher()
+    {
+        int elapsedSeconds = 0;
+        bool errorShown = false;
+
+        while (true)
+        {
+            string? rutaActiva = Services.MonitorService.BuscarCarpetaUAMOTORS();
+
+            if (!string.IsNullOrEmpty(rutaActiva))
+            {
+                // -- DRIVE ENCONTRADO --
+                Config.ResolvedDrivePath = rutaActiva;
+
+                if (_profile == null)
+                {
+                    // Necesitamos registro. WinForms permite ShowDialog() desde otro hilo si es el único formulario ahí.
+                    var form = new Forms.RegistrationForm(rutaActiva);
+                    form.ShowDialog();
+
+                    if (!form.IsRegistered)
+                    {
+                        Environment.Exit(0);
+                    }
+
+                    _profile = Services.UserService.LoadLocalProfile();
+                    Services.DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: `{_profile?.Name ?? "Usuario"}`");
+                }
+
+                // Iniciar el Monitor
+                _monitorInstance = new MonitorService(rutaActiva);
+                
+                // Actualizar UI
+                _trayIcon.Text = GetTrayText(true);
+
+                // Aviso de reconexión si hubo error previo
+                if (errorShown)
+                {
+                    MessageBox.Show(
+                        "Se encontró la conexión con Drive, monitoreo de CAD activo.",
+                        "Reconexión Exitosa - UAMOTORS CAD ALERT",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information,
+                        MessageBoxDefaultButton.Button1,
+                        MessageBoxOptions.ServiceNotification // Ensures it pops up from background
+                    );
+                }
+
+                break; // Romper el bucle, todo listo.
+            }
+
+            // -- DRIVE NO ENCONTRADO --
+            elapsedSeconds += 5;
+            
+            if (elapsedSeconds >= 90 && !errorShown)
+            {
+                // Mostrar error una sola vez después de 90 segundos
+                errorShown = true;
+                MessageBox.Show(
+                    "No se encontró la carpeta 'UAMOTORS' en tu Google Drive.\n\nPor favor revisa tu conexión a internet o asegúrate de tener Google Drive para escritorio iniciado y sincronizado.",
+                    "Sin Conexión - UAMOTORS CAD ALERT",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button1,
+                    MessageBoxOptions.ServiceNotification
+                );
+            }
+
+            int delaySeconds = (elapsedSeconds >= 300) ? 15 : 5;
+            await Task.Delay(delaySeconds * 1000);
+        }
     }
 
     private Icon LoadIcon()

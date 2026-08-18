@@ -17,46 +17,10 @@ static class Program
         // Instalacion de la aplicacion en entorno de produccion
         InstallerService.AutoInstalar();
 
-        string? rutaActiva = MonitorService.BuscarCarpetaUAMOTORS();
-
-        if (!string.IsNullOrEmpty(rutaActiva))
-        {
-            Config.ResolvedDrivePath = rutaActiva;
-            var profile = UserService.LoadLocalProfile();
-            bool isFirstTimeRegistration = (profile == null);
-            
-            if (isFirstTimeRegistration)
-            {
-                var form = new RegistrationForm(rutaActiva);
-                Application.Run(form);
-
-                if (!form.IsRegistered)
-                {
-                    Environment.Exit(0);
-                }
-                
-                // Reload profile after registration
-                profile = UserService.LoadLocalProfile();
-                
-                // Solo enviar mensaje a Discord si es la primera vez que se registra
-                DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: `{profile?.Name ?? "Usuario"}`");
-            }
-            
-            // This static reference prevents the JIT garbage collector from destroying the watcher in Release mode
-            _monitorInstance = new MonitorService(rutaActiva);
-
-            // Iniciar el contexto de aplicación del System Tray (icono junto al reloj)
-            var trayContext = new TrayApplicationContext(profile?.Name ?? "Desconocido");
-            Application.Run(trayContext);
-        }
-        else
-        {
-            MessageBox.Show(
-                "No se encontró la carpeta 'UAMOTORS' en tu Google Drive.\n\nAsegúrate de tener Google Drive para escritorio instalado y la carpeta sincronizada.", 
-                "Error - UAMOTORS CAD ALERT", 
-                MessageBoxButtons.OK, 
-                MessageBoxIcon.Error
-            );
-        }
+        var profile = UserService.LoadLocalProfile();
+        
+        // Iniciar el contexto de aplicación del System Tray (icono junto al reloj)
+        var trayContext = new TrayApplicationContext(profile);
+        Application.Run(trayContext);
     }
 }
