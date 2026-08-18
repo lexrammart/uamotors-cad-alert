@@ -45,23 +45,35 @@ public class MonitorService
 
             foreach (var path in pathsToCheck)
             {
-                // Liberar el estado SI Y SOLO SI:
-                // 1. SolidWorks se cerró por completo (crasheo/cierre normal)
-                // 2. El archivo ya no existe físicamente (el sistema operativo perdió el evento de borrado)
-                // 3. El archivo existe pero ya no está bloqueado por el sistema
-                if (isSldworksClosed || !File.Exists(path) || !EsBloqueoRealSw(path))
+                bool fileMissing = !File.Exists(path);
+                bool esBloqueoFalso = !fileMissing && !EsBloqueoRealSw(path);
+                
+                if (isSldworksClosed || fileMissing || esBloqueoFalso)
                 {
-                    bool removed;
-                    lock (_activeLockPaths)
+                    // Si el archivo existe pero sabemos que SolidWorks se cerró o es un fantasma:
+                    // Procedemos a borrarlo físicamente.
+                    // Al borrarlo, se disparará OnDeleted() automáticamente, 
+                    // enviando el mensaje "Libre" NORMAL sin mensajes raros.
+                    if (!fileMissing && (isSldworksClosed || esBloqueoFalso))
                     {
-                        removed = _activeLockPaths.Remove(path);
+                        try { File.Delete(path); } catch { }
                     }
-                    
-                    if (removed)
+                    else if (fileMissing)
                     {
-                        string filename = Path.GetFileName(path);
-                        string realName = filename.Substring(2);
-                        DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}` (Cierre inesperado)");
+                        // Si el archivo ya no existe pero el sistema operativo perdió el evento,
+                        // limpiamos la lista manualmente y mandamos el mensaje "Libre" NORMAL.
+                        bool removed;
+                        lock (_activeLockPaths)
+                        {
+                            removed = _activeLockPaths.Remove(path);
+                        }
+                        
+                        if (removed)
+                        {
+                            string filename = Path.GetFileName(path);
+                            string realName = filename.Length >= 2 ? filename.Substring(2) : filename;
+                            DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}`");
+                        }
                     }
                 }
             }
@@ -80,7 +92,7 @@ public class MonitorService
         }
     }
 
-    public static string? BuscarCarpetaUamotors()
+    public static string? BuscarCarpetaUAMOTORS()
     {
         string target = Config.TargetFolder;
         
@@ -150,53 +162,44 @@ public class MonitorService
 
     private static bool EsBloqueoRealSw(string filepath)
     {
-        // En modo dev aceptamos simulaciones.
         if (Config.Debug) 
             return true; 
             
-        // 1. Si SolidWorks ni siquiera está abierto en esta compu, es 100% seguro que 
-        // el archivo fue sincronizado por Google Drive desde la compu de alguien más.
-        if (!SldworksEstaAbierto())
-            return false;
-            
+        // 1. Obtener la ruta del archivo base quitando el ~$
+        string directory = Path.GetDirectoryName(filepath) ?? "";
+        string lockFileName = Path.GetFileName(filepath);
+        if (!lockFileName.StartsWith("~$")) return false;
+        
+        string baseFileName = lockFileName.Substring(2);
+        string baseFilePath = Path.Combine(directory, baseFileName);
+        
+        // Si el archivo base no existe, el ~$ es un huérfano sin sentido.
+        if (!File.Exists(baseFilePath)) return false;
+        
         try
         {
-            // 2. Ignorar archivos "fantasma" muy viejos que Google Drive pueda estar 
-            // sincronizando o actualizando tardíamente. Si tiene más de 5 minutos de viejo, es un fantasma atascado.
-            if (DateTime.Now - File.GetLastWriteTime(filepath) > TimeSpan.FromMinutes(5))
-                return false;
-
-            // 3. Leemos el contenido del archivo ~$ de SolidWorks.  
-            // SolidWorks graba el nombre de usuario de Windows adentro del archivo.
-            using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var reader = new BinaryReader(fs);
-            byte[] bytes = reader.ReadBytes((int)fs.Length);
+            // Intentar abrir el archivo base solicitando acceso de escritura.
+            // Según la arquitectura de SolidWorks, el motor solicita al OS un File Handle
+            // que niega FILE_SHARE_WRITE. Si SW lo tiene abierto activamente, el kernel nos negará el acceso.
+            using var fs = new FileStream(baseFilePath, FileMode.Open, FileAccess.Write, FileShare.None);
             
-            string ascii = System.Text.Encoding.ASCII.GetString(bytes);
-            string unicode = System.Text.Encoding.Unicode.GetString(bytes);
-            string defaultEnc = System.Text.Encoding.Default.GetString(bytes);
-            
-            // Verificamos si nuestro nombre de usuario de Windows está dentro del archivo
-            if (ascii.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) || 
-                unicode.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) ||
-                defaultEnc.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase))
-            {
-                return true; // ¡Nosotros somos los dueños del candado!
-            }
-            
-            // Si el archivo se pudo leer y NO tiene nuestro nombre de usuario,
-            // significa que alguien más lo bloqueó y Google Drive nos lo sincronizó.
+            // Si logramos llegar aquí, significa que el sistema operativo nos dio permiso de escritura.
+            // Por lo tanto, SolidWorks NO lo tiene bloqueado. El ~$ es un archivo fantasma.
             return false;
         }
         catch (IOException)
         {
-            // Si lanza IOException, significa que un proceso local (SLDWORKS)
-            // lo tiene bloqueado de forma estricta. Asumimos que es un bloqueo local válido.
+            // Acceso denegado o archivo en uso: El bloqueo es 100% REAL.
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Archivo de Solo Lectura o sin permisos, asumiremos ocupado por seguridad.
             return true;
         }
         catch (Exception)
         {
-            return false;
+            return true;
         }
     }
 
