@@ -8,12 +8,14 @@ public class TrayApplicationContext : ApplicationContext
 
     public TrayApplicationContext(string userDisplay)
     {
+        string currentVersion = Services.OtaUpdateService.GetCurrentVersion();
+        
         _trayIcon = new NotifyIcon()
         {
             Icon = LoadIcon(),
             ContextMenuStrip = new ContextMenuStrip(),
             Visible = true,
-            Text = $"UAMOTORS CAD ALERT\nUsuario: {userDisplay}"
+            Text = $"UAMOTORS CAD ALERT ({currentVersion})\nUsuario: {userDisplay}"
         };
 
         var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD ALERT", null, Exit);
