@@ -20,10 +20,12 @@ Esta aplicación monitorea en tiempo real los archivos de ensamblaje de SolidWor
 2. Descarga la versión más reciente ubicada bajo la sección **Assets** (el archivo se llama `UAMOTORS CAD ALERT.exe`).
 3. Ejecuta el archivo descargado.
 
-**Aviso sobre Windows SmartScreen (Pantalla Azul):**
-Como esta es una aplicación interna del equipo y no tiene un certificado comercial, Windows mostrará una pantalla azul indicando "Windows protegió su PC". Para continuar con la instalación:
-* Haz clic en el texto **"Más información"**.
-* Aparecerá un nuevo botón en la parte inferior derecha. Haz clic en **"Ejecutar de todas formas"**.
+> [!WARNING]
+> **Sobre la pantalla azul de Windows (SmartScreen):**
+> Dado que nuestra aplicación es nueva, es muy probable que Windows lance una pantalla azul de advertencia diciendo *"Windows protegió su PC"*.
+> Para continuar:
+> 1. Haz clic en el texto que dice **"Más información"** (justo debajo del texto principal).
+> 2. Aparecerá un nuevo botón abajo a la derecha. Haz clic en **"Ejecutar de todas formas"**.
 
 4. Al abrirse, ingresa tu correo institucional para vincular tu equipo.
 5. El sistema se instalará automáticamente en segundo plano y se ejecutará solo cada vez que enciendas tu computadora. No necesitas volver a abrir el archivo manualmente.
