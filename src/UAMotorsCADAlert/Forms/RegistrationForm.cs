@@ -43,9 +43,8 @@ public class RegistrationForm : Form
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.AutoScaleMode = AutoScaleMode.Dpi;
 
-        this.AutoSize = true;
-        this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        this.MinimumSize = new Size(720, 0);
+        this.Size = new Size(600, 450);
+        this.MinimumSize = new Size(450, 400);
 
         var mainLayout = new TableLayoutPanel
         {
