@@ -25,7 +25,6 @@ public static class DiscordService
         {
             var payload = new { content = message };
             string json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             string url = "";
             while (true)
@@ -39,8 +38,19 @@ public static class DiscordService
                 var db = UserService.LoadDriveDatabase(Config.ResolvedDrivePath);
                 if (db != null && db.Config.TryGetValue("webhook_url", out var wh) && !string.IsNullOrEmpty(wh))
                 {
-                    url = wh;
-                    break;
+                    // Validacion basica para no ciclarse infinitamente si el usuario pegó mal la URL
+                    if (Uri.TryCreate(wh, UriKind.Absolute, out Uri? uriResult) && 
+                        (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                    {
+                        url = wh;
+                        break;
+                    }
+                    else
+                    {
+                        // Si la URL esta mal escrita, descartamos el mensaje para no trabar la cola
+                        url = "";
+                        break;
+                    }
                 }
                 else
                 {
@@ -48,21 +58,30 @@ public static class DiscordService
                 }
             }
 
+            if (string.IsNullOrEmpty(url)) continue; // Se descarta el mensaje por URL invalida
+
             while (true)
             {
                 try
                 {
+                    // StringContent debe instanciarse por cada intento, de lo contrario lanza InvalidOperationException al reintentar
+                    using var content = new StringContent(json, Encoding.UTF8, "application/json");
                     var response = await _httpClient.PostAsync(url, content);
+                    
                     if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                     {
                         await Task.Delay(5000);
                         continue;
                     }
-                    break;
+                    break; // Exito
+                }
+                catch (HttpRequestException)
+                {
+                    await Task.Delay(15000); // Reintento solo en fallos de red
                 }
                 catch
                 {
-                    await Task.Delay(15000); // Reintento de conexion
+                    break; // Otros errores (ej. URL malformada no detectada), se descarta para no trabar
                 }
             }
         }
