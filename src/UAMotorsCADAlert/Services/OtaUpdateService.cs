@@ -127,6 +127,9 @@ public static class OtaUpdateService
     {
         Task.Run(async () =>
         {
+            // Darle 1 minuto a Windows para establecer la conexión a internet antes de buscar
+            await Task.Delay(TimeSpan.FromMinutes(1));
+            
             while (true)
             {
                 await CheckForUpdatesAsync(onUpdateFound);
