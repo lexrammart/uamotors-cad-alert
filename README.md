@@ -50,10 +50,12 @@ This application monitors SolidWorks assembly files within a local or cloud-sync
 2. Download the latest release under the **Assets** section (the file is named `UAMOTORS CAD ALERT.exe`).
 3. Run the downloaded executable.
 
-**Windows SmartScreen Bypass:**
-Since this is an internal tool without a commercial certificate, Windows will display a blue warning screen saying "Windows protected your PC". To bypass this:
-* Click on **"More info"**.
-* Click on the **"Run anyway"** button that appears.
+> [!WARNING]
+> **About the Windows SmartScreen (Blue Screen):**
+> Since our application is new, Windows will likely display a blue warning screen saying *"Windows protected your PC"*.
+> To proceed with the installation:
+> 1. Click on the text that says **"More info"** (right below the main text).
+> 2. A new button will appear at the bottom right. Click on **"Run anyway"**.
 
 4. Once the app opens, enter your institutional email to link your device.
 5. The system will automatically install itself in the background and configure Windows to run it on startup. You do not need to manually open the file again.
