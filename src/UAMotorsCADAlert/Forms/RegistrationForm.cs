@@ -26,7 +26,7 @@ public class RegistrationForm : Form
             if (stream != null)
             {
                 using var reader = new StreamReader(stream);
-                return "v" + reader.ReadToEnd().Trim();
+                return reader.ReadToEnd().Trim();
             }
         }
         catch { }
