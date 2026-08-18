@@ -6,7 +6,7 @@ namespace UAMotorsCADAlert.Services;
 
 public static class OtaUpdateService
 {
-    private const string RepoUrl = "https://api.github.com/repos/lexrammart/DiscordSW/releases/latest";
+    private const string RepoUrl = "https://api.github.com/repos/lexrammart/uamotors-cad-alert/releases/latest";
     private static readonly HttpClient _httpClient;
 
     static OtaUpdateService()
