@@ -126,9 +126,9 @@ public class TrayApplicationContext : ApplicationContext
                     // -- DRIVE NO ENCONTRADO --
                     elapsedSeconds += 5;
                     
-                    if (elapsedSeconds >= 90 && !errorShown)
+                    if (elapsedSeconds >= 45 && !errorShown)
                     {
-                        // Mostrar error una sola vez después de 90 segundos
+                        // Mostrar error una sola vez después de 45 segundos
                         errorShown = true;
                         MessageBox.Show(
                             "No se encontró la carpeta 'UAMOTORS' en tu Google Drive.\n\nPor favor revisa tu conexión a internet o asegúrate de tener Google Drive para escritorio iniciado y sincronizado.",
