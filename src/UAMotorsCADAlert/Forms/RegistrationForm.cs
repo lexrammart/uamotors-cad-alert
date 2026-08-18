@@ -8,19 +8,34 @@ public class RegistrationForm : Form
     private TextBox _emailInput = null!;
     private Button _verifyButton = null!;
     private Label _statusLabel = null!;
-    private string _rutaUamotors;
+    private string _rutaUAMOTORS;
     public bool IsRegistered { get; private set; }
 
-    public RegistrationForm(string rutaUamotors)
+    public RegistrationForm(string rutaUAMOTORS)
     {
-        _rutaUamotors = rutaUamotors;
+        _rutaUAMOTORS = rutaUAMOTORS;
         InitializeComponent();
+    }
+
+    private string GetVersion()
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.version.txt");
+            if (stream != null)
+            {
+                using var reader = new StreamReader(stream);
+                return "v" + reader.ReadToEnd().Trim();
+            }
+        }
+        catch { }
+        return "v2.0";
     }
 
     private void InitializeComponent()
     {
-        this.Text = "UAMOTORS CAD Alert - Registro";
-        this.Size = new Size(750, 500);
+        this.Text = "UAMOTORS CAD ALERT - Registro";
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -28,15 +43,61 @@ public class RegistrationForm : Form
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.AutoScaleMode = AutoScaleMode.Dpi;
 
+        this.AutoSize = true;
+        this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        this.MinimumSize = new Size(720, 0);
+
+        var mainLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 1,
+            Padding = new Padding(35, 25, 35, 10)
+        };
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        this.Controls.Add(mainLayout);
+
+        // -- BANNER IMAGE --
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.1.completo.png");
+            if (stream != null && stream.Length > 0)
+            {
+                var bannerBox = new PictureBox
+                {
+                    Image = Image.FromStream(stream),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Height = 110, // Incrementado para mayor visibilidad
+                    Dock = DockStyle.Top,
+                    BackColor = Color.Transparent,
+                    Margin = new Padding(0, 0, 0, 15)
+                };
+                mainLayout.Controls.Add(bannerBox);
+            }
+        }
+        catch (Exception) { }
+
+        // -- TITLES --
+        var titleBox = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            FlowDirection = FlowDirection.TopDown,
+            AutoSize = true,
+            WrapContents = false,
+            Margin = new Padding(0, 0, 0, 15)
+        };
+
         var titleLabel = new Label
         {
-            Text = "UAMOTORS CAD Alert v2.0",
+            Text = "UAMOTORS CAD ALERT",
             Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(40, 30)
+            Margin = new Padding(0, 0, 0, 8)
         };
-        this.Controls.Add(titleLabel);
+        titleBox.Controls.Add(titleLabel);
 
         var subtitleLabel = new Label
         {
@@ -44,96 +105,121 @@ public class RegistrationForm : Form
             Font = new Font("Segoe UI", 11),
             ForeColor = Color.FromArgb(100, 116, 139),
             AutoSize = true,
-            Location = new Point(40, 95)
+            Margin = new Padding(0)
         };
-        this.Controls.Add(subtitleLabel);
+        titleBox.Controls.Add(subtitleLabel);
+        mainLayout.Controls.Add(titleBox);
 
+        // -- INPUT --
         var emailLabel = new Label
         {
-            Text = "Correo: ",
+            Text = "Correo:",
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Location = new Point(40, 140)
+            Margin = new Padding(0, 5, 0, 6)
         };
-        this.Controls.Add(emailLabel);
-
-        try
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.uamotors.png");
-            if (stream != null && stream.Length > 0)
-            {
-                var logoBox = new PictureBox
-                {
-                    Image = Image.FromStream(stream),
-                    SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(90, 90),
-                    Location = new Point(600, 25),
-                    BackColor = Color.Transparent
-                };
-                this.Controls.Add(logoBox);
-            }
-        }
-        catch (Exception) { }
+        mainLayout.Controls.Add(emailLabel);
 
         _emailInput = new TextBox
         {
             Font = new Font("Segoe UI", 12),
-            Size = new Size(650, 35),
-            Location = new Point(40, 170)
+            Dock = DockStyle.Top,
+            Margin = new Padding(0, 0, 0, 10)
         };
-        this.Controls.Add(_emailInput);
+        mainLayout.Controls.Add(_emailInput);
 
         _statusLabel = new Label
         {
             Text = "",
             Font = new Font("Segoe UI", 10),
-            AutoSize = false,
-            Size = new Size(650, 60),
-            Location = new Point(40, 215)
+            AutoSize = true,
+            Dock = DockStyle.Top,
+            MinimumSize = new Size(0, 24),
+            Margin = new Padding(0, 0, 0, 15)
         };
-        this.Controls.Add(_statusLabel);
+        mainLayout.Controls.Add(_statusLabel);
 
+        // -- BUTTON --
         _verifyButton = new Button
         {
             Text = "Verificar y activar monitoreo",
             Font = new Font("Segoe UI", 11, FontStyle.Bold),
-            BackColor = Color.FromArgb(220, 38, 38), // Rojo
+            BackColor = Color.FromArgb(220, 38, 38),
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Size = new Size(650, 45),
-            Location = new Point(40, 290),
-            Cursor = Cursors.Hand
+            Height = 46,
+            Dock = DockStyle.Top,
+            Cursor = Cursors.Hand,
+            Margin = new Padding(0, 0, 0, 25)
         };
         _verifyButton.FlatAppearance.BorderSize = 0;
         _verifyButton.Click += VerifyButton_Click;
-        this.Controls.Add(_verifyButton);
+        mainLayout.Controls.Add(_verifyButton);
 
-        var footerLabel = new LinkLabel
+        // -- FOOTER (3 centered rows) --
+        var footerPanel = new TableLayoutPanel
         {
-            Text = "Desarrollado por Alejandro Ramírez | UAMOTORS, Departamento de Electronics",
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 1,
+            RowCount = 3,
+            Margin = new Padding(0, 0, 0, 5)
+        };
+        footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+
+        var row1 = new Label
+        {
+            Text = "UAMOTORS | Departamento de Electronics",
+            Font = new Font("Segoe UI", 9, FontStyle.Bold),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Anchor = AnchorStyles.None,
+            Margin = new Padding(0, 0, 0, 4)
+        };
+        footerPanel.Controls.Add(row1, 0, 0);
+
+        var row2 = new Label
+        {
+            Text = "Universidad Autónoma Metropolitana",
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(100, 116, 139),
+            AutoSize = true,
+            Anchor = AnchorStyles.None,
+            Margin = new Padding(0, 0, 0, 4)
+        };
+        footerPanel.Controls.Add(row2, 0, 1);
+
+        var row3 = new LinkLabel
+        {
+            Text = "Desarrollado por Alejandro Ramírez",
             Font = new Font("Segoe UI", 9),
             LinkColor = Color.FromArgb(37, 99, 235),
             ActiveLinkColor = Color.FromArgb(37, 99, 235),
             AutoSize = true,
-            Location = new Point(40, 395)
+            Anchor = AnchorStyles.None,
+            LinkBehavior = LinkBehavior.NeverUnderline,
+            Margin = new Padding(0)
         };
-        footerLabel.LinkArea = new LinkArea(17, 17);
-        footerLabel.LinkClicked += (s, ev) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
-        this.Controls.Add(footerLabel);
+        row3.LinkArea = new LinkArea(17, 17);
+        row3.LinkClicked += (s, ev) => 
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/lexrammart") { UseShellExecute = true });
+        footerPanel.Controls.Add(row3, 0, 2);
 
-        var uamLabel = new Label
+        mainLayout.Controls.Add(footerPanel);
+
+        // -- VERSION (Esquina inferior derecha) --
+        var versionLabel = new Label
         {
-            Text = "Universidad Autónoma Metropolitana",
-            Font = new Font("Segoe UI", 9, FontStyle.Italic),
-            ForeColor = Color.FromArgb(100, 116, 139),
+            Text = GetVersion(),
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(148, 163, 184), // Gris
             AutoSize = true,
-            Location = new Point(40, 420)
+            Anchor = AnchorStyles.Right,
+            Margin = new Padding(0, 10, 0, 0)
         };
-        this.Controls.Add(uamLabel);
+        mainLayout.Controls.Add(versionLabel);
 
-        // Permitir que la tecla Enter active el botón
         this.AcceptButton = _verifyButton;
     }
 
@@ -144,7 +230,7 @@ public class RegistrationForm : Form
         _statusLabel.ForeColor = Color.FromArgb(37, 99, 235);
         _verifyButton.Enabled = false;
 
-        var result = await Task.Run(() => UserService.VerifyUserEmail(email, _rutaUamotors));
+        var result = await Task.Run(() => UserService.VerifyUserEmail(email, _rutaUAMOTORS));
 
         if (result.Success)
         {
@@ -157,7 +243,7 @@ public class RegistrationForm : Form
         }
         else
         {
-            _statusLabel.Text = $"❌ {result.ErrorMsg}";
+            _statusLabel.Text = result.ErrorMsg;
             _statusLabel.ForeColor = Color.FromArgb(220, 38, 38);
             _verifyButton.Enabled = true;
             _emailInput.Enabled = true;
