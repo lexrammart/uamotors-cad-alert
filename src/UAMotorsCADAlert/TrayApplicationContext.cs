@@ -18,6 +18,11 @@ public class TrayApplicationContext : ApplicationContext
 
         var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD ALERT", null, Exit);
         _trayIcon.ContextMenuStrip.Items.Add(exitItem);
+
+        Services.OtaUpdateService.StartBackgroundUpdateChecker(msg => 
+        {
+            _trayIcon.ShowBalloonTip(3000, "Actualización Automática", msg, ToolTipIcon.Info);
+        });
     }
 
     private Icon LoadIcon()
