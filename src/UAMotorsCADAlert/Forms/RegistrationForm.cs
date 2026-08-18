@@ -53,38 +53,26 @@ public class RegistrationForm : Form
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 1,
-            Padding = new Padding(35, 15, 35, 30)
+            Padding = new Padding(35, 25, 35, 10)
         };
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
         this.Controls.Add(mainLayout);
 
-        // -- TOP HEADER (Version Label top right) --
-        var versionLabel = new Label
-        {
-            Text = GetVersion(),
-            Font = new Font("Segoe UI", 9),
-            ForeColor = Color.FromArgb(148, 163, 184), // Gris
-            AutoSize = true,
-            Anchor = AnchorStyles.Top | AnchorStyles.Right,
-            Margin = new Padding(0, 0, 0, 0)
-        };
-        mainLayout.Controls.Add(versionLabel);
-
-        // -- BANNER IMAGE (SVG converted to PNG) --
+        // -- BANNER IMAGE --
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert_banner.png");
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.1.completo.png");
             if (stream != null && stream.Length > 0)
             {
                 var bannerBox = new PictureBox
                 {
                     Image = Image.FromStream(stream),
                     SizeMode = PictureBoxSizeMode.Zoom,
-                    Height = 65,
+                    Height = 110, // Incrementado para mayor visibilidad
                     Dock = DockStyle.Top,
                     BackColor = Color.Transparent,
-                    Margin = new Padding(0, 5, 0, 15)
+                    Margin = new Padding(0, 0, 0, 15)
                 };
                 mainLayout.Controls.Add(bannerBox);
             }
@@ -176,7 +164,7 @@ public class RegistrationForm : Form
             AutoSize = true,
             ColumnCount = 1,
             RowCount = 3,
-            Margin = new Padding(0)
+            Margin = new Padding(0, 0, 0, 5)
         };
         footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
@@ -219,6 +207,18 @@ public class RegistrationForm : Form
         footerPanel.Controls.Add(row3, 0, 2);
 
         mainLayout.Controls.Add(footerPanel);
+
+        // -- VERSION (Esquina inferior derecha) --
+        var versionLabel = new Label
+        {
+            Text = GetVersion(),
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(148, 163, 184), // Gris
+            AutoSize = true,
+            Anchor = AnchorStyles.Right,
+            Margin = new Padding(0, 10, 0, 0)
+        };
+        mainLayout.Controls.Add(versionLabel);
 
         this.AcceptButton = _verifyButton;
     }
