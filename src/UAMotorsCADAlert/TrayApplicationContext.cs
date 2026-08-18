@@ -8,16 +8,23 @@ public class TrayApplicationContext : ApplicationContext
 
     public TrayApplicationContext(string userDisplay)
     {
+        string currentVersion = Services.OtaUpdateService.GetCurrentVersion();
+        
         _trayIcon = new NotifyIcon()
         {
             Icon = LoadIcon(),
             ContextMenuStrip = new ContextMenuStrip(),
             Visible = true,
-            Text = $"UAMOTORS CAD Alert\nUsuario: {userDisplay}"
+            Text = $"UAMOTORS CAD ALERT ({currentVersion})\nUsuario: {userDisplay}"
         };
 
-        var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD Alert", null, Exit);
+        var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD ALERT", null, Exit);
         _trayIcon.ContextMenuStrip.Items.Add(exitItem);
+
+        Services.OtaUpdateService.StartBackgroundUpdateChecker(msg => 
+        {
+            _trayIcon.ShowBalloonTip(3000, "Actualización Automática", msg, ToolTipIcon.Info);
+        });
     }
 
     private Icon LoadIcon()
@@ -25,7 +32,7 @@ public class TrayApplicationContext : ApplicationContext
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert_icon.ico");
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert.ico");
             if (stream != null)
             {
                 return new Icon(stream);

@@ -33,7 +33,7 @@ public class MonitorService
     {
         while (true)
         {
-            await Task.Delay(5000); // Revisión periódica cada 5 segundos
+            await Task.Delay(5000); // Frecuencia de revision
             
             bool isSldworksClosed = !SldworksEstaAbierto();
             List<string> pathsToCheck;
@@ -45,23 +45,31 @@ public class MonitorService
 
             foreach (var path in pathsToCheck)
             {
-                // Liberar el estado SI Y SOLO SI:
-                // 1. SolidWorks se cerró por completo (crasheo/cierre normal)
-                // 2. El archivo ya no existe físicamente (el sistema operativo perdió el evento de borrado)
-                // 3. El archivo existe pero ya no está bloqueado por el sistema
-                if (isSldworksClosed || !File.Exists(path) || !EsBloqueoRealSw(path))
+                bool fileMissing = !File.Exists(path);
+                bool esBloqueoFalso = !fileMissing && !EsBloqueoRealSw(path);
+                
+                if (isSldworksClosed || fileMissing || esBloqueoFalso)
                 {
-                    bool removed;
-                    lock (_activeLockPaths)
+                    // Eliminacion de archivo residual
+                    if (!fileMissing && (isSldworksClosed || esBloqueoFalso))
                     {
-                        removed = _activeLockPaths.Remove(path);
+                        try { File.Delete(path); } catch { }
                     }
-                    
-                    if (removed)
+                    else if (fileMissing)
                     {
-                        string filename = Path.GetFileName(path);
-                        string realName = filename.Substring(2);
-                        DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}` (Cierre inesperado)");
+                        // Remocion manual de registro
+                        bool removed;
+                        lock (_activeLockPaths)
+                        {
+                            removed = _activeLockPaths.Remove(path);
+                        }
+                        
+                        if (removed)
+                        {
+                            string filename = Path.GetFileName(path);
+                            string realName = filename.Length >= 2 ? filename.Substring(2) : filename;
+                            DiscordService.SendMessage($"🟢 **[LIBRE]:** Ensamble disponible (`{realName}`) - Liberado por `{_userDisplay}`");
+                        }
                     }
                 }
             }
@@ -80,7 +88,7 @@ public class MonitorService
         }
     }
 
-    public static string? BuscarCarpetaUamotors()
+    public static string? BuscarCarpetaUAMOTORS()
     {
         string target = Config.TargetFolder;
         
@@ -150,53 +158,42 @@ public class MonitorService
 
     private static bool EsBloqueoRealSw(string filepath)
     {
-        // En modo dev aceptamos simulaciones.
         if (Config.Debug) 
             return true; 
             
-        // 1. Si SolidWorks ni siquiera está abierto en esta compu, es 100% seguro que 
-        // el archivo fue sincronizado por Google Drive desde la compu de alguien más.
-        if (!SldworksEstaAbierto())
-            return false;
-            
+        // Resolucion de ruta del archivo base
+        string directory = Path.GetDirectoryName(filepath) ?? "";
+        string lockFileName = Path.GetFileName(filepath);
+        if (!lockFileName.StartsWith("~$")) return false;
+        
+        string baseFileName = lockFileName.Substring(2);
+        string baseFilePath = Path.Combine(directory, baseFileName);
+        
+        // Validacion de existencia
+        if (!File.Exists(baseFilePath)) return false;
+        
         try
         {
-            // 2. Ignorar archivos "fantasma" muy viejos que Google Drive pueda estar 
-            // sincronizando o actualizando tardíamente. Si tiene más de 5 minutos de viejo, es un fantasma atascado.
-            if (DateTime.Now - File.GetLastWriteTime(filepath) > TimeSpan.FromMinutes(5))
-                return false;
-
-            // 3. Leemos el contenido del archivo ~$ de SolidWorks.  
-            // SolidWorks graba el nombre de usuario de Windows adentro del archivo.
-            using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var reader = new BinaryReader(fs);
-            byte[] bytes = reader.ReadBytes((int)fs.Length);
+            // Verificacion de bloqueo en sistema operativo
+            using var fs = new FileStream(baseFilePath, FileMode.Open, FileAccess.Write, FileShare.None);
             
-            string ascii = System.Text.Encoding.ASCII.GetString(bytes);
-            string unicode = System.Text.Encoding.Unicode.GetString(bytes);
-            string defaultEnc = System.Text.Encoding.Default.GetString(bytes);
-            
-            // Verificamos si nuestro nombre de usuario de Windows está dentro del archivo
-            if (ascii.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) || 
-                unicode.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase) ||
-                defaultEnc.Contains(Environment.UserName, StringComparison.OrdinalIgnoreCase))
-            {
-                return true; // ¡Nosotros somos los dueños del candado!
-            }
-            
-            // Si el archivo se pudo leer y NO tiene nuestro nombre de usuario,
-            // significa que alguien más lo bloqueó y Google Drive nos lo sincronizó.
+            // Bloqueo no detectado
             return false;
         }
         catch (IOException)
         {
-            // Si lanza IOException, significa que un proceso local (SLDWORKS)
-            // lo tiene bloqueado de forma estricta. Asumimos que es un bloqueo local válido.
+            // Bloqueo detectado
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Restriccion de permisos
             return true;
         }
         catch (Exception)
         {
-            return false;
+            // Excepcion no controlada
+            return true;
         }
     }
 
@@ -210,14 +207,14 @@ public class MonitorService
         string filename = Path.GetFileName(e.FullPath);
         if (Regex.IsMatch(filename, Config.LockPattern, RegexOptions.IgnoreCase))
         {
-            // 1. Validar que sea un candado real y nuestro (usuario coincida y sea reciente)
+            // Verificacion de autenticidad del evento
             if (!EsBloqueoRealSw(e.FullPath))
                 return;
 
             lock (_activeLockPaths)
             {
                 if (!_activeLockPaths.Add(e.FullPath))
-                    return; // Si ya estaba registrado, ignorar para no mandar 2 mensajes
+                    return; // Mitigacion de eventos duplicados
             }
             string realName = filename.Substring(2);
             DiscordService.SendMessage($"🔴 **[OCUPADO]:** Ensamble en uso (`{realName}`) por `{_userDisplay}`");

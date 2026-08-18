@@ -5,11 +5,12 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>..\..\assets\cad_alert_icon.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\assets\cad_alert.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\uamotors.png" LogicalName="UAMotorsCADAlert.Resources.uamotors.png" />
-    <EmbeddedResource Include="..\..\assets\cad_alert_icon.ico" LogicalName="UAMotorsCADAlert.Resources.cad_alert_icon.ico" />
+    <EmbeddedResource Include="..\..\assets\1.completo.png" LogicalName="UAMotorsCADAlert.Resources.1.completo.png" />
+    <EmbeddedResource Include="..\..\assets\cad_alert.ico" LogicalName="UAMotorsCADAlert.Resources.cad_alert.ico" />
+    <EmbeddedResource Include="version.txt" LogicalName="UAMotorsCADAlert.version.txt" />
   </ItemGroup>
 </Project>
