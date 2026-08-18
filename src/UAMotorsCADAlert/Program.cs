@@ -23,7 +23,9 @@ static class Program
         {
             Config.ResolvedDrivePath = rutaActiva;
             var profile = UserService.LoadLocalProfile();
-            if (profile == null)
+            bool isFirstTimeRegistration = (profile == null);
+            
+            if (isFirstTimeRegistration)
             {
                 var form = new RegistrationForm(rutaActiva);
                 Application.Run(form);
@@ -35,9 +37,10 @@ static class Program
                 
                 // Reload profile after registration
                 profile = UserService.LoadLocalProfile();
+                
+                // Solo enviar mensaje a Discord si es la primera vez que se registra
+                DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: `{profile?.Name ?? "Usuario"}`");
             }
-
-            DiscordService.SendMessage($"⚙️ Monitoreo de CAD activo para: `{profile?.Name ?? "Usuario"}`");
             
             // This static reference prevents the JIT garbage collector from destroying the watcher in Release mode
             _monitorInstance = new MonitorService(rutaActiva);
