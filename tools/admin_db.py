@@ -1,50 +1,58 @@
-"""
-Admin panel to manage the UAMOTORS authorized users database.
-Provides a GUI to view, add, remove, and import users from CSV.
-"""
-
 import os
-import sys
 import json
 import base64
 import csv
+import hashlib
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
+from cryptography.fernet import Fernet
 
-# Hardcoded config values since the python backend was migrated to C#
 TARGET_FOLDER = "UAMOTORS"
-REL_DRIVE_DB_PATH = os.path.join("2026", "Design", "Electronics", "Data-Code telemetry", "auamotors_cad_alert", "authorized_users.uamotors")
+REL_DRIVE_DB_PATH = os.path.join("2026", "Design", "Electronics", "CAD-Alert", "authorized_users.uamotors")
 MAC_DRIVE_UAMOTORS_PATH = "/Users/alejandro/Library/CloudStorage/GoogleDrive-al2242000248@azc.uam.mx/Shared drives/UAMOTORS"
 
+def get_encryption_key():
+    secret = "UAMOTORS_2026_CAD_ELECTRONICS"
+    salt = "UAMOTORS_CAD_ALERT_SALT"
+    key = hashlib.pbkdf2_hmac('sha256', secret.encode(), salt.encode(), 100000)
+    return base64.urlsafe_b64encode(key)
+
 def get_db_path():
-    """Returns the absolute path to the Drive database."""
     if os.name != 'nt':
         base = MAC_DRIVE_UAMOTORS_PATH
     else:
-        # Fallback to a default or ask user if needed on Windows
         base = os.path.join(os.path.expanduser("~"), "Google Drive", TARGET_FOLDER)
-    
     return os.path.join(base, REL_DRIVE_DB_PATH)
-
 
 class AdminPanel(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("UAMOTORS CAD Alert - Admin Panel")
-        self.geometry("600x450")
+        self.title("UAMOTORS CAD ALERT - Panel de Administrador")
+        self.geometry("650x550")
         self.db_path = get_db_path()
-        self.db_data = {}
+        self.fernet = Fernet(get_encryption_key())
+        
+        self.db_data = {
+            "config": {"webhook_url": ""},
+            "users": {}
+        }
         
         self.setup_ui()
         self.load_db()
 
     def setup_ui(self):
-        """Sets up the Tkinter user interface elements."""
-        # Top frame for adding users
+        config_frame = tk.LabelFrame(self, text="Configuracion del Sistema")
+        config_frame.pack(fill="x", padx=10, pady=5)
+        
+        tk.Label(config_frame, text="URL del Webhook:").pack(side="left", padx=5, pady=5)
+        self.entry_webhook = tk.Entry(config_frame, width=50)
+        self.entry_webhook.pack(side="left", padx=5, pady=5)
+        btn_save_config = tk.Button(config_frame, text="Guardar Webhook", command=self.save_config)
+        btn_save_config.pack(side="left", padx=5, pady=5)
+
         add_frame = tk.LabelFrame(self, text="Agregar Nuevo Usuario")
         add_frame.pack(fill="x", padx=10, pady=5)
         
-        # Inner frame to center the form
         inner_frame = tk.Frame(add_frame)
         inner_frame.pack(pady=10)
         
@@ -59,25 +67,22 @@ class AdminPanel(tk.Tk):
         btn_add = tk.Button(inner_frame, text="Agregar Usuario", command=self.add_user, width=15)
         btn_add.grid(row=2, column=0, columnspan=2, pady=(10, 0))
 
-        # Middle frame for user list
         list_frame = tk.LabelFrame(self, text="Usuarios Registrados")
         list_frame.pack(fill="both", expand=True, padx=10, pady=5)
         
-        # Barra de búsqueda
         search_frame = tk.Frame(list_frame)
         search_frame.pack(fill="x", padx=5, pady=5)
-        tk.Label(search_frame, text="🔍 Buscar por correo:").pack(side="left")
+        tk.Label(search_frame, text="Buscar por correo:").pack(side="left")
         self.entry_search = tk.Entry(search_frame, width=30)
         self.entry_search.pack(side="left", padx=5)
         self.entry_search.bind("<KeyRelease>", lambda e: self.refresh_list())
         
-        # Estilo para usar fuente monoespaciada y evitar el "zigzag"
         style = ttk.Style()
         style.configure("Treeview", font=("Menlo", 10))
         
         columns = ("email", "name")
         self.tree = ttk.Treeview(list_frame, columns=columns, show="headings", style="Treeview")
-        self.tree.heading("email", text="Correo Electrónico")
+        self.tree.heading("email", text="Correo Electronico")
         self.tree.heading("name", text="Nombre")
         self.tree.column("email", width=250, anchor="w")
         self.tree.column("name", width=300, anchor="w")
@@ -88,7 +93,6 @@ class AdminPanel(tk.Tk):
         self.tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
         scrollbar.pack(side="right", fill="y", pady=5)
 
-        # Bottom frame for actions
         action_frame = tk.Frame(self)
         action_frame.pack(fill="x", padx=10, pady=10)
         
@@ -99,35 +103,46 @@ class AdminPanel(tk.Tk):
         btn_import.pack(side="right", padx=5)
 
     def load_db(self):
-        """Loads and decodes the database file."""
         if not os.path.exists(self.db_path):
-            messagebox.showinfo("Aviso", f"No se encontró la base de datos en:\n{self.db_path}\nSe creará una nueva al guardar.")
-            self.db_data = {}
             return
 
         try:
             with open(self.db_path, "rb") as f:
-                encoded_bytes = f.read()
-            json_str = base64.b64decode(encoded_bytes).decode("utf-8")
-            self.db_data = json.loads(json_str)
+                encrypted_data = f.read()
+            decrypted_data = self.fernet.decrypt(encrypted_data).decode("utf-8")
+            loaded_json = json.loads(decrypted_data)
+            
+            if "users" in loaded_json:
+                self.db_data = loaded_json
+            else:
+                self.db_data["users"] = loaded_json
+                
+            self.entry_webhook.delete(0, tk.END)
+            self.entry_webhook.insert(0, self.db_data.get("config", {}).get("webhook_url", ""))
             self.refresh_list()
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo cargar la base de datos:\n{e}")
+            messagebox.showerror("Error", f"No se pudo cargar o desencriptar la base de datos:\n{e}")
 
     def save_db(self):
-        """Encodes and saves the database file."""
         try:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-            json_str = json.dumps(self.db_data, ensure_ascii=False, indent=2)
-            encoded_bytes = base64.b64encode(json_str.encode("utf-8"))
+            json_str = json.dumps(self.db_data, ensure_ascii=False)
+            encrypted_data = self.fernet.encrypt(json_str.encode("utf-8"))
             
             with open(self.db_path, "wb") as f:
-                f.write(encoded_bytes)
+                f.write(encrypted_data)
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo guardar la base de datos:\n{e}")
 
+    def save_config(self):
+        webhook = self.entry_webhook.get().strip()
+        if "config" not in self.db_data:
+            self.db_data["config"] = {}
+        self.db_data["config"]["webhook_url"] = webhook
+        self.save_db()
+        messagebox.showinfo("Exito", "Configuracion de Webhook guardada y encriptada.")
+
     def refresh_list(self):
-        """Refreshes the TreeView with current dictionary data."""
         for item in self.tree.get_children():
             self.tree.delete(item)
             
@@ -135,47 +150,45 @@ class AdminPanel(tk.Tk):
         if hasattr(self, "entry_search"):
             search_term = self.entry_search.get().strip().lower()
             
-        for email, info in self.db_data.items():
+        users = self.db_data.get("users", {})
+        for email, info in users.items():
             if search_term in email:
                 self.tree.insert("", "end", values=(email, info.get("nombre", "")))
 
     def add_user(self):
-        """Adds a single user from the input fields."""
         name = self.entry_name.get().strip().upper()
         email = self.entry_email.get().strip().lower()
         
         if not name or not email or "@" not in email:
-            messagebox.showwarning("Advertencia", "Por favor ingresa un nombre y un correo electrónico válido.")
+            messagebox.showwarning("Advertencia", "Ingresa un nombre y un correo valido.")
             return
             
-        self.db_data[email] = {"nombre": name}
+        if "users" not in self.db_data:
+            self.db_data["users"] = {}
+            
+        self.db_data["users"][email] = {"nombre": name}
         self.save_db()
         self.refresh_list()
         
         self.entry_name.delete(0, tk.END)
         self.entry_email.delete(0, tk.END)
-        messagebox.showinfo("Éxito", f"Usuario {email} agregado correctamente.")
 
     def remove_user(self):
-        """Removes the selected user from the list."""
         selected = self.tree.selection()
         if not selected:
-            messagebox.showwarning("Advertencia", "Selecciona un usuario de la lista para eliminar.")
             return
             
         item = selected[0]
         email = self.tree.item(item, "values")[0]
         
-        if messagebox.askyesno("Confirmar", f"¿Estás seguro de que deseas eliminar a {email}?"):
-            if email in self.db_data:
-                del self.db_data[email]
+        if messagebox.askyesno("Confirmar", f"Eliminar a {email}?"):
+            if email in self.db_data.get("users", {}):
+                del self.db_data["users"][email]
                 self.save_db()
                 self.refresh_list()
 
     def import_csv(self):
-        """Imports users from a selected CSV file."""
         file_path = filedialog.askopenfilename(
-            title="Seleccionar archivo CSV",
             filetypes=(("Archivos CSV", "*.csv"), ("Todos los archivos", "*.*"))
         )
         
@@ -191,22 +204,19 @@ class AdminPanel(tk.Tk):
                         email = row[0].strip().lower()
                         name = row[1].strip().upper()
                         
-                        # Ignorar la fila si parece ser un encabezado
                         if email == "correo" or "email" in email or "@" not in email:
                             continue
                             
-                        self.db_data[email] = {"nombre": name}
+                        if "users" not in self.db_data:
+                            self.db_data["users"] = {}
+                        self.db_data["users"][email] = {"nombre": name}
                         count += 1
             
             if count > 0:
                 self.save_db()
                 self.refresh_list()
-                messagebox.showinfo("Éxito", f"Se importaron {count} usuarios correctamente.")
-            else:
-                messagebox.showwarning("Advertencia", "No se encontraron datos válidos en el CSV.")
-                
         except Exception as e:
-            messagebox.showerror("Error", f"Ocurrió un error al importar:\n{e}")
+            messagebox.showerror("Error", f"Error al importar:\n{e}")
 
 if __name__ == "__main__":
     app = AdminPanel()
