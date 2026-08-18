@@ -17,7 +17,7 @@ static class Program
         // 1. Instalar silenciosamente si no estamos en AppData y no es modo Debug
         InstallerService.AutoInstalar();
 
-        string? rutaActiva = MonitorService.BuscarCarpetaUamotors();
+        string? rutaActiva = MonitorService.BuscarCarpetaUAMOTORS();
 
         if (!string.IsNullOrEmpty(rutaActiva))
         {
