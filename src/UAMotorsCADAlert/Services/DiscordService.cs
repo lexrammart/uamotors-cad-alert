@@ -27,7 +27,26 @@ public static class DiscordService
             string json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            string url = Config.GetWebhookUrl();
+            string url = "";
+            while (true)
+            {
+                if (string.IsNullOrEmpty(Config.ResolvedDrivePath))
+                {
+                    await Task.Delay(5000);
+                    continue;
+                }
+
+                var db = UserService.LoadDriveDatabase(Config.ResolvedDrivePath);
+                if (db != null && db.Config.TryGetValue("webhook_url", out var wh) && !string.IsNullOrEmpty(wh))
+                {
+                    url = wh;
+                    break;
+                }
+                else
+                {
+                    await Task.Delay(10000); // Reintento de lectura de configuracion
+                }
+            }
 
             while (true)
             {
@@ -43,7 +62,7 @@ public static class DiscordService
                 }
                 catch
                 {
-                    await Task.Delay(15000); // Retry after 15s on network error
+                    await Task.Delay(15000); // Reintento de conexion
                 }
             }
         }
