@@ -13,6 +13,7 @@ public static class OtaUpdateService
     {
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "UAMotorsCADAlert-Updater");
+        _httpClient.Timeout = TimeSpan.FromMinutes(30); // Prevenir el límite de 100s en descargas pesadas
     }
 
     public static string GetCurrentVersion()
@@ -98,16 +99,21 @@ public static class OtaUpdateService
     {
         try
         {
-            var updateData = await _httpClient.GetByteArrayAsync(downloadUrl);
-            
-            // Guardar en una carpeta temporal con el mismo nombre exacto para que el instalador lo reconozca
             string tempDir = Path.Combine(Path.GetTempPath(), "UAMotorsUpdate");
             Directory.CreateDirectory(tempDir);
             
             string actualExeName = Path.GetFileName(Environment.ProcessPath ?? Assembly.GetExecutingAssembly().Location);
             string tempExePath = Path.Combine(tempDir, actualExeName);
 
-            File.WriteAllBytes(tempExePath, updateData);
+            // Descargar el archivo directamente a disco (Stream) en lugar de RAM, ideal para archivos pesados (155MB)
+            using (var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+                using (var fs = new FileStream(tempExePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await response.Content.CopyToAsync(fs);
+                }
+            }
 
             // Iniciar el instalador desde la carpeta temporal
             Process.Start(new ProcessStartInfo
