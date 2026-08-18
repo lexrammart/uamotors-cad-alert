@@ -13,10 +13,10 @@ public class TrayApplicationContext : ApplicationContext
             Icon = LoadIcon(),
             ContextMenuStrip = new ContextMenuStrip(),
             Visible = true,
-            Text = $"UAMOTORS CAD Alert\nUsuario: {userDisplay}"
+            Text = $"UAMOTORS CAD ALERT\nUsuario: {userDisplay}"
         };
 
-        var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD Alert", null, Exit);
+        var exitItem = new ToolStripMenuItem("Cerrar UAMOTORS CAD ALERT", null, Exit);
         _trayIcon.ContextMenuStrip.Items.Add(exitItem);
     }
 

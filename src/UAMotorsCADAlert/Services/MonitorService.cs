@@ -33,7 +33,7 @@ public class MonitorService
     {
         while (true)
         {
-            await Task.Delay(5000); // Revisión periódica cada 5 segundos
+            await Task.Delay(5000); // Frecuencia de revision
             
             bool isSldworksClosed = !SldworksEstaAbierto();
             List<string> pathsToCheck;
@@ -50,18 +50,14 @@ public class MonitorService
                 
                 if (isSldworksClosed || fileMissing || esBloqueoFalso)
                 {
-                    // Si el archivo existe pero sabemos que SolidWorks se cerró o es un fantasma:
-                    // Procedemos a borrarlo físicamente.
-                    // Al borrarlo, se disparará OnDeleted() automáticamente, 
-                    // enviando el mensaje "Libre" NORMAL sin mensajes raros.
+                    // Eliminacion de archivo residual
                     if (!fileMissing && (isSldworksClosed || esBloqueoFalso))
                     {
                         try { File.Delete(path); } catch { }
                     }
                     else if (fileMissing)
                     {
-                        // Si el archivo ya no existe pero el sistema operativo perdió el evento,
-                        // limpiamos la lista manualmente y mandamos el mensaje "Libre" NORMAL.
+                        // Remocion manual de registro
                         bool removed;
                         lock (_activeLockPaths)
                         {
@@ -165,7 +161,7 @@ public class MonitorService
         if (Config.Debug) 
             return true; 
             
-        // 1. Obtener la ruta del archivo base quitando el ~$
+        // Resolucion de ruta del archivo base
         string directory = Path.GetDirectoryName(filepath) ?? "";
         string lockFileName = Path.GetFileName(filepath);
         if (!lockFileName.StartsWith("~$")) return false;
@@ -173,32 +169,30 @@ public class MonitorService
         string baseFileName = lockFileName.Substring(2);
         string baseFilePath = Path.Combine(directory, baseFileName);
         
-        // Si el archivo base no existe, el ~$ es un huérfano sin sentido.
+        // Validacion de existencia
         if (!File.Exists(baseFilePath)) return false;
         
         try
         {
-            // Intentar abrir el archivo base solicitando acceso de escritura.
-            // Según la arquitectura de SolidWorks, el motor solicita al OS un File Handle
-            // que niega FILE_SHARE_WRITE. Si SW lo tiene abierto activamente, el kernel nos negará el acceso.
+            // Verificacion de bloqueo en sistema operativo
             using var fs = new FileStream(baseFilePath, FileMode.Open, FileAccess.Write, FileShare.None);
             
-            // Si logramos llegar aquí, significa que el sistema operativo nos dio permiso de escritura.
-            // Por lo tanto, SolidWorks NO lo tiene bloqueado. El ~$ es un archivo fantasma.
+            // Bloqueo no detectado
             return false;
         }
         catch (IOException)
         {
-            // Acceso denegado o archivo en uso: El bloqueo es 100% REAL.
+            // Bloqueo detectado
             return true;
         }
         catch (UnauthorizedAccessException)
         {
-            // Archivo de Solo Lectura o sin permisos, asumiremos ocupado por seguridad.
+            // Restriccion de permisos
             return true;
         }
         catch (Exception)
         {
+            // Excepcion no controlada
             return true;
         }
     }
@@ -213,14 +207,14 @@ public class MonitorService
         string filename = Path.GetFileName(e.FullPath);
         if (Regex.IsMatch(filename, Config.LockPattern, RegexOptions.IgnoreCase))
         {
-            // 1. Validar que sea un candado real y nuestro (usuario coincida y sea reciente)
+            // Verificacion de autenticidad del evento
             if (!EsBloqueoRealSw(e.FullPath))
                 return;
 
             lock (_activeLockPaths)
             {
                 if (!_activeLockPaths.Add(e.FullPath))
-                    return; // Si ya estaba registrado, ignorar para no mandar 2 mensajes
+                    return; // Mitigacion de eventos duplicados
             }
             string realName = filename.Substring(2);
             DiscordService.SendMessage($"🔴 **[OCUPADO]:** Ensamble en uso (`{realName}`) por `{_userDisplay}`");

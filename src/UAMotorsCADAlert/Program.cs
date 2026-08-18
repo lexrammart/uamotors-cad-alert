@@ -14,13 +14,14 @@ static class Program
         
         InstallerService.CheckSingleInstance();
 
-        // 1. Instalar silenciosamente si no estamos en AppData y no es modo Debug
+        // Instalacion de la aplicacion en entorno de produccion
         InstallerService.AutoInstalar();
 
         string? rutaActiva = MonitorService.BuscarCarpetaUAMOTORS();
 
         if (!string.IsNullOrEmpty(rutaActiva))
         {
+            Config.ResolvedDrivePath = rutaActiva;
             var profile = UserService.LoadLocalProfile();
             if (profile == null)
             {
@@ -49,7 +50,7 @@ static class Program
         {
             MessageBox.Show(
                 "No se encontró la carpeta 'UAMOTORS' en tu Google Drive.\n\nAsegúrate de tener Google Drive para escritorio instalado y la carpeta sincronizada.", 
-                "Error - UAMOTORS CAD", 
+                "Error - UAMOTORS CAD ALERT", 
                 MessageBoxButtons.OK, 
                 MessageBoxIcon.Error
             );

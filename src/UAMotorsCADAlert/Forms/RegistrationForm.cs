@@ -8,18 +8,18 @@ public class RegistrationForm : Form
     private TextBox _emailInput = null!;
     private Button _verifyButton = null!;
     private Label _statusLabel = null!;
-    private string _rutaUamotors;
+    private string _rutaUAMOTORS;
     public bool IsRegistered { get; private set; }
 
-    public RegistrationForm(string rutaUamotors)
+    public RegistrationForm(string rutaUAMOTORS)
     {
-        _rutaUamotors = rutaUamotors;
+        _rutaUAMOTORS = rutaUAMOTORS;
         InitializeComponent();
     }
 
     private void InitializeComponent()
     {
-        this.Text = "UAMOTORS CAD Alert - Registro";
+        this.Text = "UAMOTORS CAD ALERT - Registro";
         this.Size = new Size(750, 500);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -30,7 +30,7 @@ public class RegistrationForm : Form
 
         var titleLabel = new Label
         {
-            Text = "UAMOTORS CAD Alert v2.0",
+            Text = "UAMOTORS CAD ALERT v2.0",
             Font = new Font("Segoe UI", 18, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
@@ -144,7 +144,7 @@ public class RegistrationForm : Form
         _statusLabel.ForeColor = Color.FromArgb(37, 99, 235);
         _verifyButton.Enabled = false;
 
-        var result = await Task.Run(() => UserService.VerifyUserEmail(email, _rutaUamotors));
+        var result = await Task.Run(() => UserService.VerifyUserEmail(email, _rutaUAMOTORS));
 
         if (result.Success)
         {
