@@ -38,17 +38,31 @@ public class TrayApplicationContext : ApplicationContext
 
     private string GetTrayText(bool isConnected)
     {
-        string username = _profile?.Name ?? "Sin registrar";
+        string username = _profile?.Name ?? "USUARIO";
         string text;
         
         if (isConnected)
         {
-            text = $"CAD ALERT ({_currentVersion})\nUSUARIO: {username}";
+            text = $"UAMOTORS CAD ALERT ({_currentVersion})\nUSUARIO: {username}";
         }
         else
         {
-            // Quitamos la version para ahorrar caracteres y evitar la truncación de Windows (63 max)
-            text = $"CAD ALERT\nUSUARIO: {username}\nSin conexión con Drive";
+            // Cortar por la primera palabra
+            string[] parts = username.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string firstName = parts.Length > 0 ? parts[0] : "USUARIO";
+            
+            // Limitar a máximo 12 caracteres
+            if (firstName.Length > 12)
+            {
+                firstName = firstName.Substring(0, 12);
+            }
+            
+            // Agregar "..." si el nombre original era más largo (tenía más palabras o excedía 12 caracteres)
+            // o simplemente agregarlo como solicitaste para indicar acortamiento visual.
+            bool needsDots = parts.Length > 1 || username.Length > 12;
+            string displayName = needsDots ? $"{firstName}..." : firstName;
+
+            text = $"UAMOTORS CAD ALERT {_currentVersion}\nUSR: {displayName}\nSin conexión Drive";
         }
         
         // Ensure text is not longer than 63 chars (Windows limit)
