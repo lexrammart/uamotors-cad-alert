@@ -8,6 +8,7 @@ public class MonitorService
     private readonly FileSystemWatcher _watcher;
     private readonly HashSet<string> _activeLockPaths = new();
     private readonly string _userDisplay;
+    private bool _isRunning = true;
 
     public MonitorService(string rutaActiva)
     {
@@ -29,9 +30,20 @@ public class MonitorService
         Task.Factory.StartNew(GhostLockWatcher, TaskCreationOptions.LongRunning);
     }
 
+    public void Stop()
+    {
+        _isRunning = false;
+        _watcher.EnableRaisingEvents = false;
+        _watcher.Dispose();
+        lock (_activeLockPaths)
+        {
+            _activeLockPaths.Clear();
+        }
+    }
+
     private async Task GhostLockWatcher()
     {
-        while (true)
+        while (_isRunning)
         {
             await Task.Delay(5000); // Frecuencia de revision
             
