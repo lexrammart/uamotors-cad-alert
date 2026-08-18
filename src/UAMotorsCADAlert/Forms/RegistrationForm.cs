@@ -191,7 +191,7 @@ public class RegistrationForm : Form
         if (result.Success)
         {
             UserService.SaveLocalProfile(email, result.Name!);
-            _statusLabel.Text = $"Registro completado para el usuario: {result.Name}.";
+            _statusLabel.Text = $"✅ ¡Bienvenidx {result.Name}! Registro completado.";
             _statusLabel.ForeColor = Color.FromArgb(22, 163, 74);
             IsRegistered = true;
             await Task.Delay(3000);
