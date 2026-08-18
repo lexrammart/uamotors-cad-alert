@@ -88,7 +88,7 @@ public class RegistrationForm : Form
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.uamotors.png");
+            using var stream = assembly.GetManifestResourceStream("UAMotorsCADAlert.Resources.cad_alert.png");
             if (stream != null && stream.Length > 0)
             {
                 var logoBox = new PictureBox
