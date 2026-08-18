@@ -36,8 +36,8 @@ public class RegistrationForm : Form
     private void InitializeComponent()
     {
         this.Text = "UAMOTORS CAD ALERT - Registro";
-        this.FormBorderStyle = FormBorderStyle.FixedDialog;
-        this.MaximizeBox = false;
+        this.FormBorderStyle = FormBorderStyle.Sizable;
+        this.MaximizeBox = true;
         this.MinimizeBox = false;
         this.StartPosition = FormStartPosition.CenterScreen;
         this.BackColor = Color.FromArgb(248, 250, 252);

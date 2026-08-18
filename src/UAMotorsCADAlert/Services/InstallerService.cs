@@ -41,7 +41,7 @@ public static class InstallerService
                 Environment.Exit(1);
             }
 
-            CreateScheduledTask(targetPath);
+            CreateAutoStartRegistry(targetPath);
             CreateStartMenuShortcut(targetPath, exeName);
             
             Process.Start(new ProcessStartInfo
@@ -104,19 +104,15 @@ public static class InstallerService
         catch { }
     }
 
-    private static void CreateScheduledTask(string targetPath)
+    private static void CreateAutoStartRegistry(string targetPath)
     {
         try
         {
-            string taskName = "UAMotorsCADAlertTask";
-            string args = $"/Create /TN \"{taskName}\" /TR \"\\\"{targetPath}\\\"\" /SC ONLOGON /F";
-            Process.Start(new ProcessStartInfo
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+            if (key != null)
             {
-                FileName = "schtasks.exe",
-                Arguments = args,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            })?.WaitForExit();
+                key.SetValue("UAMOTORS CAD ALERT", $"\"{targetPath}\"");
+            }
         }
         catch { }
     }
