@@ -112,23 +112,38 @@ public class RegistrationForm : Form
         mainLayout.Controls.Add(titleBox);
 
         // -- INPUT --
+        var inputRow = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(0, 15, 0, 15)
+        };
+        inputRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        inputRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+
         var emailLabel = new Label
         {
             Text = "Correo:",
-            Font = new Font("Segoe UI", 11, FontStyle.Bold),
+            Font = new Font("Segoe UI", 12, FontStyle.Bold),
             ForeColor = Color.FromArgb(15, 23, 42),
             AutoSize = true,
-            Margin = new Padding(0, 5, 0, 6)
+            Anchor = AnchorStyles.Left,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Margin = new Padding(0, 0, 10, 0)
         };
-        mainLayout.Controls.Add(emailLabel);
+        inputRow.Controls.Add(emailLabel, 0, 0);
 
         _emailInput = new TextBox
         {
             Font = new Font("Segoe UI", 12),
             Dock = DockStyle.Top,
-            Margin = new Padding(0, 0, 0, 10)
+            Margin = new Padding(0)
         };
-        mainLayout.Controls.Add(_emailInput);
+        inputRow.Controls.Add(_emailInput, 1, 0);
+
+        mainLayout.Controls.Add(inputRow);
 
         _statusLabel = new Label
         {
