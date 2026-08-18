@@ -9,7 +9,31 @@ from cryptography.fernet import Fernet
 
 TARGET_FOLDER = "UAMOTORS"
 REL_DRIVE_DB_PATH = os.path.join("2026", "Design", "Electronics", "CAD-Alert", "authorized_users.uamotors")
-MAC_DRIVE_UAMOTORS_PATH = "/Users/alejandro/Library/CloudStorage/GoogleDrive-[CORREO_INSTITUCIONAL_REDACTADO]/Shared drives/UAMOTORS"
+
+def find_uamotors_folder():
+    if os.name == 'nt': # Windows
+        possible_paths = [
+            os.path.join(os.path.expanduser("~"), "Google Drive", TARGET_FOLDER),
+            "G:\\Unidades compartidas\\UAMOTORS",
+            "G:\\Shared drives\\UAMOTORS",
+            "H:\\Unidades compartidas\\UAMOTORS",
+            "H:\\Shared drives\\UAMOTORS"
+        ]
+        for p in possible_paths:
+            if os.path.exists(p):
+                return p
+    else: # macOS
+        cloud_storage = os.path.expanduser("~/Library/CloudStorage")
+        if os.path.exists(cloud_storage):
+            for item in os.listdir(cloud_storage):
+                if item.startswith("GoogleDrive-"):
+                    path_en = os.path.join(cloud_storage, item, "Shared drives", "UAMOTORS")
+                    if os.path.exists(path_en):
+                        return path_en
+                    path_es = os.path.join(cloud_storage, item, "Unidades compartidas", "UAMOTORS")
+                    if os.path.exists(path_es):
+                        return path_es
+    return None
 
 def get_encryption_key():
     secret = "UAMOTORS_2026_CAD_ELECTRONICS"
@@ -18,10 +42,10 @@ def get_encryption_key():
     return base64.urlsafe_b64encode(key)
 
 def get_db_path():
-    if os.name != 'nt':
-        base = MAC_DRIVE_UAMOTORS_PATH
-    else:
-        base = os.path.join(os.path.expanduser("~"), "Google Drive", TARGET_FOLDER)
+    base = find_uamotors_folder()
+    if not base:
+        messagebox.showerror("Error Crítico", "No se encontró la carpeta 'UAMOTORS' en tu Google Drive.\nAsegúrate de tener Google Drive sincronizado.")
+        return ""
     return os.path.join(base, REL_DRIVE_DB_PATH)
 
 class AdminPanel(tk.Tk):
