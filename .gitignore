@@ -27,6 +27,10 @@ MANIFEST
 *.manifest
 *.spec
 
+# C# Build Artifacts
+bin/
+obj/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
